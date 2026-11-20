@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Treino do TCC2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Silkscreen&display=swap">
+<style>
+html,body{margin:0}
+/* Layout: HUD de fliperama no topo, abas como "fases", uma coluna de estudo central (até 1100px). Tema escuro único, de propósito. */
+:root{
+  --bg:#121514; --panel:#1a1f1d; --raise:#222826; --line:#2f3733; --line2:#3c4641;
+  --fg:#e7ece9; --mute:#9aa6a0; --dim:#6f7b75;
+  --neon:#3dff6e; --neon-ink:#06210f; --neon-soft:rgba(61,255,110,.12);
+  --ok:#3dff6e; --bad:#ff6b5e; --bad-soft:rgba(255,107,94,.12); --warn:#ffc547; --warn-soft:rgba(255,197,71,.12); --info:#7cc4ff;
+  --f-disp:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --f-hud:"Silkscreen", "JetBrains Mono", monospace;
+  --r:6px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--neon);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-disp);text-wrap:balance;margin:0;line-height:1.2}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* HUD */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.hud-row{display:flex;align-items:center;gap:20px;padding-block:10px;flex-wrap:wrap}
+.logo{font-family:var(--f-hud);font-size:15px;letter-spacing:.04em;color:var(--fg);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.logo i{display:inline-block;width:10px;height:10px;background:var(--neon)}
+.stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;align-items:flex-end}
+.stat b{font-family:var(--f-hud);font-weight:400;font-size:15px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{font-family:var(--f-disp);font-weight:600;font-size:14px;color:var(--mute);text-decoration:none;padding:10px 14px 9px;border-bottom:2px solid transparent;white-space:nowrap;display:flex;gap:8px;align-items:center}
+nav.tabs a small{font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+nav.tabs a:hover{color:var(--fg)}
+nav.tabs a[aria-current="page"]{color:var(--fg);border-bottom-color:var(--neon)}
+
+main{padding-block:28px 64px}
+.view[hidden]{display:none}
+.lead{color:var(--mute);max-width:65ch;margin:6px 0 0}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.sec-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.sec-title h1{font-size:28px}
+
+/* buttons */
+.btn{border:1px solid var(--line2);background:var(--raise);border-radius:var(--r);padding:9px 16px;font-family:var(--f-disp);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;min-height:40px}
+.btn:hover{border-color:var(--dim)}
+.btn.primary{background:var(--neon);color:var(--neon-ink);border-color:var(--neon)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn kbd{font-family:var(--f-mono);font-size:11px;opacity:.7;border:1px solid currentColor;border-radius:3px;padding:0 4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;color:var(--mute)}
+.chip[aria-pressed="true"]{background:var(--raise);color:var(--fg);border-color:var(--dim)}
+.chip[aria-pressed="true"]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--neon);margin-right:7px;vertical-align:1px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
+.seg button{background:transparent;border:0;padding:7px 12px;font-size:13px;color:var(--mute);border-right:1px solid var(--line2)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--fg);box-shadow:inset 0 -2px 0 var(--neon)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.pad{padding:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid2>*{min-width:0}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+
+/* painel */
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+@media (max-width:900px){.modes{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.modes{grid-template-columns:1fr}}
+.mode{display:flex;flex-direction:column;gap:6px;padding:16px;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.mode:hover{border-color:var(--line2);background:var(--raise)}
+.mode h3{font-size:17px}
+.mode p{margin:0;color:var(--mute);font-size:13.5px}
+.mode .big{font-family:var(--f-hud);font-size:22px;margin-top:auto;padding-top:8px;font-variant-numeric:tabular-nums}
+.mode .big small{font-family:var(--f-body);font-size:12px;color:var(--dim);margin-left:6px}
+.topics{display:flex;flex-direction:column;gap:2px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) 120px 64px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:0}
+.trow .nm{font-size:14px}
+.trow .nm small{display:block;color:var(--dim);font-size:12px}
+.bar{height:8px;background:var(--raise);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--mute)}
+.bar i.hi{background:var(--ok)}.bar i.mid{background:var(--warn)}.bar i.lo{background:var(--bad)}
+.trow .pct{font-family:var(--f-mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.warnlist{display:flex;flex-direction:column;gap:12px}
+.warn{border-left:3px solid var(--warn);padding:2px 0 2px 12px}
+.warn b{font-family:var(--f-disp);font-size:15px}
+.warn p{margin:2px 0;color:var(--mute);font-size:13.5px}
+.warn .onde{font-family:var(--f-mono);font-size:11.5px;color:var(--dim)}
+
+/* quiz */
+.qcard{max-width:760px;margin:0 auto}
+.qmeta{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-bottom:10px;flex-wrap:wrap}
+.progress{height:4px;background:var(--raise);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--neon);transition:width .25s}
+.qtext{font-family:var(--f-disp);font-size:21px;font-weight:600;line-height:1.35;margin:0 0 18px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:12px 14px;font-size:15px;width:100%}
+.opt:hover:not(:disabled){border-color:var(--dim);background:var(--raise)}
+.opt .k{font-family:var(--f-mono);font-size:12px;color:var(--dim);border:1px solid var(--line2);border-radius:3px;min-width:22px;text-align:center;padding:1px 0;margin-top:2px}
+.opt.right{border-color:var(--ok);background:var(--neon-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .tag{margin-left:auto;font-family:var(--f-mono);font-size:12px;white-space:nowrap;padding-left:8px}
+.opt.right .tag{color:var(--ok)}.opt.wrong .tag{color:var(--bad)}
+.opt:disabled{cursor:default}
+.explain{margin-top:16px;padding:16px;border-radius:var(--r);background:var(--panel);border:1px solid var(--line)}
+.explain .verdict{font-family:var(--f-disp);font-weight:700;font-size:16px;display:flex;gap:8px;align-items:center}
+.explain .verdict.ok{color:var(--ok)}.explain .verdict.no{color:var(--bad)}
+.explain p{margin:8px 0 0}
+.ref{font-family:var(--f-mono);font-size:12px;color:var(--info);margin-top:10px}
+.setup{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.field label.lbl{display:block;font-family:var(--f-disp);font-weight:600;font-size:14px;margin-bottom:8px}
+.summary{max-width:760px;margin:0 auto}
+.score{font-family:var(--f-hud);font-size:44px;line-height:1}
+.missed{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.missed div{padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);font-size:14px}
+.missed div b{display:block;font-family:var(--f-disp);margin-bottom:4px}
+.missed div span{color:var(--ok)}
+
+/* flashcards */
+.fc-wrap{max-width:680px;margin:0 auto}
+.fc{perspective:1400px;cursor:pointer;margin-bottom:16px}
+.fc-inner{position:relative;min-height:300px;transition:transform .45s;transform-style:preserve-3d}
+.fc.flip .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:28px;display:flex;flex-direction:column;overflow:auto}
+.fc-face.back{transform:rotateY(180deg)}
+.fc-front-term{font-family:var(--f-disp);font-weight:700;font-size:32px;margin:auto 0;text-align:center}
+.fc-hint{font-family:var(--f-mono);font-size:12px;color:var(--dim);text-align:center}
+.fc-def{font-size:16.5px;margin:10px 0 0}
+.fc-ex{margin-top:14px;padding:10px 12px;border-radius:var(--r);background:var(--raise);font-size:14.5px;color:var(--fg)}
+.fc-ex b{font-family:var(--f-mono);font-size:11px;color:var(--neon);letter-spacing:.06em;text-transform:uppercase;display:block}
+.boxes{display:flex;gap:6px;justify-content:center;font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-top:10px;flex-wrap:wrap}
+.boxes span b{color:var(--fg)}
+.rate{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rate .btn{justify-content:center}
+.rate .no{border-color:var(--bad)}.rate .mid{border-color:var(--warn)}.rate .yes{border-color:var(--ok)}
+@media (prefers-reduced-motion:reduce){.fc-inner{transition:none}}
+
+/* banca */
+.bq-list{display:flex;flex-direction:column}
+.bq-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:12px 4px;width:100%}
+.bq-item:hover{background:var(--panel)}
+.bq-item .q{font-size:15px}
+.bq-item .q small{display:block;font-family:var(--f-mono);font-size:11.5px;color:var(--dim);margin-top:2px}
+.pill{font-family:var(--f-mono);font-size:12px;padding:2px 8px;border-radius:999px;background:var(--raise);color:var(--mute);white-space:nowrap}
+.pill.hi{background:var(--neon-soft);color:var(--ok)}.pill.mid{background:var(--warn-soft);color:var(--warn)}.pill.lo{background:var(--bad-soft);color:var(--bad)}
+.bq-stage{max-width:820px;margin:0 auto}
+.bq-q{font-family:var(--f-disp);font-size:24px;font-weight:600;line-height:1.3;margin:6px 0 16px}
+textarea{width:100%;min-height:170px;resize:vertical;background:var(--panel);color:var(--fg);border:1px solid var(--line2);border-radius:var(--r);padding:12px 14px;font:inherit;font-size:15px;line-height:1.55}
+textarea:focus{border-color:var(--neon);outline:none}
+.timer{font-family:var(--f-hud);font-size:18px;font-variant-numeric:tabular-nums;min-width:64px}
+.mic[aria-pressed="true"]{border-color:var(--bad);color:var(--bad)}
+.model{margin-top:18px}
+.model h3{font-size:16px;margin-bottom:8px}
+.model .ans{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;font-size:15px}
+.checks{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.checks label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);cursor:pointer;font-size:14.5px}
+.checks input{accent-color:var(--neon);width:17px;height:17px;margin-top:2px;flex:none}
+.dica{margin-top:12px;border-left:3px solid var(--warn);padding:4px 0 4px 12px;color:var(--mute);font-size:14px}
+.dica b{color:var(--warn);font-family:var(--f-disp)}
+.ai{margin-top:18px;border:1px solid var(--line2);border-radius:var(--r);padding:16px;background:var(--panel)}
+.ai h3{font-size:16px;display:flex;gap:10px;align-items:center}
+.ai .nota{font-family:var(--f-hud);font-size:26px}
+.ai ul{margin:6px 0 0;padding-left:18px}
+.ai li{margin:3px 0}
+.ai .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:12px;display:block}
+.ai .lbl.ok{color:var(--ok)}.ai .lbl.no{color:var(--warn)}.ai .lbl.fix{color:var(--bad)}.ai .lbl.rep{color:var(--info)}
+.muted{color:var(--mute)}
+.small{font-size:13px}
+
+/* apresentação */
+.pres{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.pres{grid-template-columns:1fr}}
+.stage{position:relative}
+.slideimg{width:100%;aspect-ratio:16/9;background:#fff;border-radius:var(--r);border:1px solid var(--line);display:block;object-fit:contain;max-width:100%}
+.slidebar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.slidebar .n{font-family:var(--f-hud);font-size:15px;font-variant-numeric:tabular-nums}
+.thumbs{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+.thumbs button{width:28px;height:22px;font-family:var(--f-mono);font-size:11px;border:1px solid var(--line2);background:var(--panel);border-radius:3px;color:var(--mute);padding:0}
+.thumbs button.done{border-color:var(--ok);color:var(--ok)}
+.thumbs button.over{border-color:var(--warn);color:var(--warn)}
+.thumbs button[aria-current="true"]{background:var(--neon);color:var(--neon-ink);border-color:var(--neon)}
+.side{display:flex;flex-direction:column;gap:14px}
+.clock{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.clock .big{font-family:var(--f-hud);font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.clock .big.over{color:var(--warn)}
+.clock .tgt{font-family:var(--f-mono);font-size:12px;color:var(--dim);text-align:right}
+.tbar{height:6px;background:var(--raise);border-radius:2px;overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--neon);transition:width .3s linear}
+.tbar i.over{background:var(--warn)}
+.notes{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14.5px;white-space:pre-line;max-height:340px;overflow:auto}
+.notes.hiddenNotes{filter:blur(6px);user-select:none;cursor:pointer}
+.total{font-family:var(--f-mono);font-size:12.5px;color:var(--mute);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.settings{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mute)}
+.settings input[type=number]{width:64px;background:var(--panel);border:1px solid var(--line2);color:var(--fg);border-radius:var(--r);padding:6px 8px;font-family:var(--f-mono)}
+details.say{border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+details.say summary{padding:10px 14px;cursor:pointer;font-family:var(--f-disp);font-weight:600;font-size:14px}
+details.say .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+details.say textarea{min-height:110px}
+.recap{margin-top:24px}
+.recap table{width:100%;border-collapse:collapse;font-size:13.5px}
+.recap th,.recap td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.recap td.num,.recap th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.empty{color:var(--dim);font-size:14px;padding:12px 0}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--raise);border:1px solid var(--line2);padding:8px 14px;border-radius:var(--r);font-size:13.5px;z-index:20}
+@media (max-width:560px){.stats{gap:12px}.stat:nth-child(n+3){display:none}.qtext{font-size:18px}.bq-q{font-size:20px}.fc-front-term{font-size:26px}.trow{grid-template-columns:minmax(0,1fr) 70px 48px}}
+</style>
+</head>
+<body>
+
+
+<header class="hud">
+  <div class="wrap">
+    <div class="hud-row">
+      <div class="logo"><i></i>TREINO TCC2</div>
+      <div class="stats">
+        <div class="stat"><b id="hAcerto">--</b><span>acerto no quiz</span></div>
+        <div class="stat"><b id="hCards">0/0</b><span>cards dominados</span></div>
+        <div class="stat"><b id="hBanca">0/0</b><span>banca treinada</span></div>
+        <div class="stat"><b id="hEnsaios">0</b><span>ensaios</span></div>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Seções">
+      <a href="#painel" data-v="painel">Painel</a>
+      <a href="#quiz" data-v="quiz">Quiz <small id="nQuiz"></small></a>
+      <a href="#cards" data-v="cards">Flashcards <small id="nCards"></small></a>
+      <a href="#banca" data-v="banca">Perguntas da banca <small id="nBanca"></small></a>
+      <a href="#ensaio" data-v="ensaio">Ensaiar apresentação <small>26</small></a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- PAINEL -->
+<section class="view" id="v-painel">
+  <div class="sec-title">
+    <div>
+      <div class="eyebrow">Ferramenta educacional · gerenciamento de implantação · ITIL 4 + CI/CD</div>
+      <h1>Estude o seu TCC2 e ensaie para a banca</h1>
+      <p class="lead">Tudo aqui foi tirado do texto do TCC (TCC2_cap5.docx) e dos 26 slides com as suas notas. Cada resposta indica a seção ou o slide de onde veio. O progresso fica salvo neste navegador.</p>
+    </div>
+  </div>
+  <div class="modes">
+    <a class="mode" href="#quiz"><h3>Quiz</h3><p>Múltipla escolha com explicação simples e exemplo.</p><div class="big" id="mQuiz">0<small>respondidas</small></div></a>
+    <a class="mode" href="#cards"><h3>Flashcards</h3><p>Termos de ITIL, CI/CD e avaliação, com exemplo concreto.</p><div class="big" id="mCards">0<small>dominados</small></div></a>
+    <a class="mode" href="#banca"><h3>Perguntas da banca</h3><p>Responda com suas palavras e compare com a resposta-modelo.</p><div class="big" id="mBanca">0<small>treinadas</small></div></a>
+    <a class="mode" href="#ensaio"><h3>Ensaiar apresentação</h3><p>Slide a slide, com cronômetro e os pontos que não podem faltar.</p><div class="big" id="mEnsaio">--<small>último ensaio</small></div></a>
+  </div>
+  <div class="grid2">
+    <div class="panel pad">
+      <div class="sec-title" style="margin-bottom:8px"><h2 style="font-size:18px">Domínio por assunto</h2><button class="btn ghost" id="btnErros" type="button">Revisar meus erros</button></div>
+      <p class="muted small" style="margin:0 0 8px">Acerto no quiz por tema. Vermelho abaixo de 60%, amarelo até 80%.</p>
+      <div class="topics" id="topicList"></div>
+    </div>
+    <div class="panel pad">
+      <h2 style="font-size:18px;margin-bottom:6px">Antes da banca, confira</h2>
+      <p class="muted small" style="margin:0 0 14px">Conferido contra a versão final do TCC e os slides de 19/11. A banca pode notar.</p>
+      <div class="warnlist" id="warnList"></div>
+    </div>
+  </div>
+  <p class="muted small" style="margin-top:20px">Quer recomeçar do zero? <button class="btn ghost" id="btnReset" type="button" style="min-height:32px;padding:4px 10px">Apagar meu progresso</button> <span id="resetConfirm" hidden>Tem certeza? <button class="btn" id="btnResetYes" type="button" style="min-height:32px;padding:4px 10px">Sim, apagar</button> <button class="btn ghost" id="btnResetNo" type="button" style="min-height:32px;padding:4px 10px">Cancelar</button></span></p>
+</section>
+
+<!-- QUIZ -->
+<section class="view" id="v-quiz" hidden>
+  <div id="quizSetup" class="setup">
+    <div><h1 style="font-size:28px">Quiz</h1><p class="lead">Escolha os temas e quantas perguntas. As opções aparecem em ordem diferente a cada vez.</p></div>
+    <div class="field"><label class="lbl">Temas</label><div class="chips" id="qTopics"></div></div>
+    <div class="field"><label class="lbl">Quais perguntas</label>
+      <div class="seg" id="qMode"><button type="button" data-m="mix" aria-pressed="true">Misturar (prioriza erros)</button><button type="button" data-m="novas" aria-pressed="false">Nunca vistas</button><button type="button" data-m="erros" aria-pressed="false">Só as que errei</button></div></div>
+    <div class="field"><label class="lbl">Quantidade</label>
+      <div class="seg" id="qCount"><button type="button" data-n="10" aria-pressed="true">10</button><button type="button" data-n="20" aria-pressed="false">20</button><button type="button" data-n="999" aria-pressed="false">Todas</button></div></div>
+    <div class="row"><button class="btn primary" id="qStart" type="button">Começar</button><span class="muted small" id="qAvail"></span></div>
+  </div>
+  <div id="quizRun" class="qcard" hidden>
+    <div class="qmeta"><span id="qPos"></span><span id="qTopic"></span></div>
+    <div class="progress"><i id="qBar"></i></div>
+    <p class="qtext" id="qText"></p>
+    <div class="opts" id="qOpts"></div>
+    <div id="qExplain"></div>
+    <div class="row" style="margin-top:16px;justify-content:space-between"><button class="btn ghost" id="qQuit" type="button">Encerrar</button><button class="btn primary" id="qNext" type="button" hidden>Próxima <kbd>Enter</kbd></button></div>
+  </div>
+  <div id="quizEnd" class="summary" hidden></div>
+</section>
+
+<!-- FLASHCARDS -->
+<section class="view" id="v-cards" hidden>
+  <div class="fc-wrap">
+    <div class="sec-title"><div><h1>Flashcards</h1><p class="lead">Pense na resposta, vire o card e diga com sinceridade se sabia. Os que você não sabe voltam mais vezes.</p></div></div>
+    <div class="chips" id="cTopics" style="margin-bottom:16px"></div>
+    <div class="fc" id="fc" role="button" tabindex="0" aria-label="Virar card">
+      <div class="fc-inner">
+        <div class="fc-face front"><div class="eyebrow" id="fcTopic"></div><div class="fc-front-term" id="fcTerm"></div><div class="fc-hint">Clique ou aperte espaço para virar</div></div>
+        <div class="fc-face back"><div class="eyebrow" id="fcTopic2"></div><h2 id="fcTerm2" style="font-size:20px;margin-top:6px"></h2><p class="fc-def" id="fcDef"></p><div class="fc-ex"><b>Exemplo</b><span id="fcEx"></span></div></div>
+      </div>
+    </div>
+    <div class="rate" id="fcRate">
+      <button class="btn no" type="button" data-r="0">Não sabia <kbd>1</kbd></button>
+      <button class="btn mid" type="button" data-r="1">Mais ou menos <kbd>2</kbd></button>
+      <button class="btn yes" type="button" data-r="2">Sabia <kbd>3</kbd></button>
+    </div>
+    <div class="boxes" id="fcBoxes"></div>
+  </div>
+</section>
+
+<!-- BANCA -->
+<section class="view" id="v-banca" hidden>
+  <div id="bList">
+    <div class="sec-title"><div><h1>Perguntas da banca</h1><p class="lead">Perguntas que um avaliador pode fazer. Responda como se estivesse na sala, em voz alta ou digitando, e depois compare com a resposta-modelo.</p></div><button class="btn primary" id="bRandom" type="button">Sortear uma pergunta</button></div>
+    <div class="bq-list" id="bItems"></div>
+  </div>
+  <div id="bStage" class="bq-stage" hidden>
+    <button class="btn ghost" id="bBack" type="button" style="margin-bottom:14px">Voltar à lista</button>
+    <div class="eyebrow" id="bTopic"></div>
+    <p class="bq-q" id="bQ"></p>
+    <div class="row" style="margin-bottom:10px;justify-content:space-between">
+      <div class="row"><span class="timer" id="bTimer">0:00</span><span class="muted small">Tente responder em até 1 minuto e meio.</span></div>
+      <button class="btn mic" id="bMic" type="button" aria-pressed="false" hidden>Ditar resposta</button>
+    </div>
+    <label for="bAns" class="muted small">Sua resposta</label>
+    <textarea id="bAns" placeholder="Escreva (ou dite) o que você responderia para a banca."></textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="bAsk" type="button" hidden>Avaliar com Claude</button>
+      <button class="btn" id="bShow" type="button">Ver resposta-modelo</button>
+      <button class="btn ghost" id="bNext" type="button">Outra pergunta</button>
+    </div>
+    <div id="bAi"></div>
+    <div id="bModel" class="model" hidden>
+      <h3>Resposta-modelo</h3>
+      <div class="ans" id="bModelTxt"></div>
+      <div class="ref" id="bRef"></div>
+      <div id="bDica"></div>
+      <h3 style="margin-top:18px">Marque o que você falou</h3>
+      <div class="checks" id="bChecks"></div>
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="bSave" type="button">Salvar resultado</button><span class="muted small" id="bSaved"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ENSAIO -->
+<section class="view" id="v-ensaio" hidden>
+  <div class="sec-title"><div><h1>Ensaiar apresentação</h1><p class="lead">Fale cada slide em voz alta sem olhar as notas. Depois confira os pontos que não podem faltar. As setas do teclado trocam de slide.</p></div>
+    <div class="seg" id="eMode"><button type="button" data-m="ensaio" aria-pressed="true">Ensaio (notas escondidas)</button><button type="button" data-m="leitura" aria-pressed="false">Leitura (notas visíveis)</button></div>
+  </div>
+  <div class="pres">
+    <div class="stage">
+      <img class="slideimg" id="eImg" alt="">
+      <div class="slidebar">
+        <button class="btn" id="ePrev" type="button">Anterior <kbd>←</kbd></button>
+        <span class="n" id="eN"></span>
+        <button class="btn primary" id="eNext" type="button">Próximo <kbd>→</kbd></button>
+        <button class="btn ghost" id="ePause" type="button">Pausar</button>
+        <button class="btn ghost" id="eRestart" type="button">Recomeçar ensaio</button>
+      </div>
+      <div class="thumbs" id="eThumbs"></div>
+    </div>
+    <div class="side">
+      <div class="panel pad" style="display:flex;flex-direction:column;gap:10px">
+        <div class="clock"><div><div class="eyebrow">Neste slide</div><div class="big" id="eClock">0:00</div></div><div class="tgt" id="eTgt"></div></div>
+        <div class="tbar"><i id="eTbar"></i></div>
+        <div class="total"><span id="eTotal"></span><span id="eTotalTgt"></span></div>
+        <div class="settings"><label for="eMin">Tempo total da apresentação</label><input type="number" id="eMin" min="5" max="60" value="20"><span>min</span></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:6px">Pontos que não podem faltar</div>
+        <div class="checks" id="ePts"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:6px">Suas notas do apresentador</div>
+        <div class="notes" id="eNotes" title="Clique para mostrar"></div>
+      </div>
+      <details class="say" id="eSay">
+        <summary>Gravar o que eu falei e pedir opinião</summary>
+        <div class="in">
+          <div class="row"><button class="btn mic" id="eMic" type="button" aria-pressed="false" hidden>Ditar</button><span class="muted small" id="eMicNote">Digite ou dite o que você falou neste slide.</span></div>
+          <textarea id="eSaid" placeholder="O que você falou neste slide"></textarea>
+          <button class="btn" id="eAsk" type="button" hidden>Comparar com as notas</button>
+          <div id="eAi"></div>
+        </div>
+      </details>
+    </div>
+  </div>
+  <div class="recap" id="eRecap"></div>
+</section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const TOPICOS = {
+  problema: "Contexto e problema",
+  objetivos: "Objetivos e metodologia",
+  itil: "ITIL 4 e mudanças",
+  cicd: "CI/CD e estratégias",
+  ensino: "Feedback, gamificação e simulação",
+  trabalhos: "Trabalhos relacionados",
+  projeto: "Projeto educacional",
+  sistema: "Requisitos, modelagem e tecnologias",
+  avaliacao: "Avaliação (GQM, testes, SUS)",
+  fechamento: "Limitações e cronograma"
+};
+
+const QUIZ = [
+// ---------- problema
+{t:"problema",q:"Segundo Pang, Hindle e Barbosa (2020), em quantas ementas universitárias o ensino de implantação (deployment) é ignorado?",o:["Mais de 75%","Cerca de 25%","Exatamente metade","Menos de 10%"],c:0,e:"O estudo analisou 50 universidades e viu que mais de 75% das ementas não ensinam implantação. É o número de abertura do seu problema (slide 4).",r:"Introdução · Slide 4"},
+{t:"problema",q:"Qual é o principal motivo, segundo a literatura citada, para as universidades não ensinarem implantação na prática?",o:["Falta de interesse dos alunos","Custo e trabalho de montar e manter servidores e laboratórios de build e deploy","Proibição das empresas de software","O tema já é coberto em disciplinas de redes"],c:1,e:"Montar um laboratório real é caro e dá trabalho administrativo. Por isso a sua ferramenta é simulada: o aluno não precisa de servidor nenhum.",r:"Introdução · Seção 3.6 · Slide 4"},
+{t:"problema",q:"Quando a universidade usa ferramentas reais como Jenkins, Docker e Ansible em aula, qual problema o TCC aponta?",o:["Os alunos aprendem rápido demais","As ferramentas são pagas","O aluno gasta a aula configurando rede e scripts, e não aprende a decidir","As ferramentas não funcionam em Linux"],c:2,e:"A complexidade técnica desvia o foco. Exemplo: o aluno passa 1h tentando o Docker subir e nunca chega a discutir se a versão podia ir para produção.",r:"Introdução · Slide 4"},
+{t:"problema",q:"Qual é a 'dicotomia' (separação) que o TCC identifica no ensino?",o:["Teoria x prática de programação","Cursos de DevOps focam na automação; cursos de ITIL focam na governança, e quase ninguém junta os dois","Front-end x back-end","Graduação x pós-graduação"],c:1,e:"É a lacuna central do trabalho. DevOps ensina a automatizar o pipeline; ITIL ensina regras, aprovações e riscos. Na vida real as duas coisas andam juntas, e a ferramenta une as duas.",r:"Introdução · Seção 3.8 · Slide 4 e 10"},
+{t:"problema",q:"Qual é a pergunta de pesquisa do TCC?",o:["Qual ferramenta de CI/CD é a melhor para empresas?","De que maneira uma ferramenta educacional baseada em simulações pode apoiar o ensino e a aprendizagem introdutória de gerenciamento de implantação baseado no ITIL 4 e alinhado a boas práticas de CI/CD em cursos superiores de computação?","Quanto custa montar um laboratório de DevOps?","Os alunos preferem ITIL ou DevOps?"],c:1,e:"Decore a estrutura: ferramenta educacional + simulações + ensino e aprendizagem introdutória + gerenciamento de implantação + ITIL 4 + CI/CD + cursos superiores de computação.",r:"Seção 1.1 · Slide 4"},
+{t:"problema",q:"O que o escopo do trabalho NÃO inclui?",o:["Atividades simuladas com feedback","Conteúdo explicativo","Implantar sistemas reais de terceiros, gerenciar infraestrutura de produção e preparar para certificação ITIL","Um painel para o professor"],c:2,e:"A delimitação de escopo exclui sistemas reais, integração obrigatória com nuvem ou plataformas profissionais de CI/CD e preparação para certificação. Se a banca perguntar 'por que não roda um pipeline de verdade?', a resposta está aqui.",r:"Seção 1.1.2"},
+// ---------- objetivos e metodologia
+{t:"objetivos",q:"O objetivo geral tem duas partes. Quais são?",o:["Construir a ferramenta e vendê-la","Desenvolver a ferramenta e avaliar sua contribuição para a aprendizagem","Revisar a literatura e escrever um artigo","Criar um curso e uma certificação"],c:1,e:"Construir + verificar se ajuda a aprender. Por isso existe a avaliação com pré e pós-teste.",r:"Seção 1.2.1 · Slide 5"},
+{t:"objetivos",q:"Quais objetivos específicos foram concluídos no TCC II?",o:["OE1, OE2 e OE3","OE4, OE5 e OE6","Todos os seis","Apenas o OE1"],c:0,e:"OE1 (selecionar conceitos), OE2 (definir objetivos de aprendizagem, atividades, feedback e gamificação) e OE3 (projetar a ferramenta). OE4 a OE6 ficam para o TCC III.",r:"Seção 1.2.2 e 5 · Slide 5"},
+{t:"objetivos",q:"O que diz o OE6?",o:["Implementar o protótipo","Aplicar numa turma","Avaliar a contribuição da ferramenta, comparando o que os alunos aprenderam com o que percebem ter aprendido, considerando a facilidade de uso","Selecionar os conceitos de ITIL"],c:2,e:"OE6 é a avaliação: aprendizagem medida x percebida + usabilidade. OE4 é implementar e testar, OE5 é aplicar na turma.",r:"Seção 1.2.2 · Slide 5"},
+{t:"objetivos",q:"Como a pesquisa é classificada quanto à natureza e aos objetivos?",o:["Básica e experimental","Aplicada, exploratória e descritiva","Teórica e explicativa","Documental e histórica"],c:1,e:"Aplicada porque resolve um problema prático (ensinar implantação). Exploratória porque investiga as dificuldades e alternativas. Descritiva porque registra a ferramenta e seu uso. Fonte: Gerhardt e Silveira (2009).",r:"Seção 1.3.1 · Slide 7"},
+{t:"objetivos",q:"Para que serve o modelo ADDIE no TCC?",o:["Para escolher o banco de dados","Para planejar a parte educacional: Análise, Design, Desenvolvimento, Implementação e Avaliação","Para medir a usabilidade","Para organizar o código em módulos"],c:1,e:"ADDIE é um roteiro para criar material de ensino. No TCC II você fez Análise (público) e Design (trilha, atividades, feedback). Fonte: Lu e Sides (2022).",r:"Seção 1.3.1 e 4.2 · Slide 7"},
+{t:"objetivos",q:"Quais fases do ADDIE foram feitas no TCC II?",o:["Desenvolvimento e Implementação","Análise e Design","Implementação e Avaliação","Todas"],c:1,e:"O capítulo 4 (projeto educacional) corresponde a Análise e Design. Desenvolvimento, Implementação e Avaliação vêm no TCC III.",r:"Seção 4.2 · Slide 7"},
+{t:"objetivos",q:"No TCC, o que corresponde à fase de 'Implementação' do ADDIE?",o:["Programar o software","Usar a proposta educacional com os alunos (aplicar em sala)","Escrever os requisitos","Publicar no GitHub"],c:1,e:"Pegadinha comum: no ADDIE, 'implementação' é aplicar o material com o público. Programar o software fica na fase de Desenvolvimento.",r:"Seção 1.3.1"},
+{t:"objetivos",q:"Qual processo de desenvolvimento de software foi escolhido?",o:["Cascata","Iterativo e incremental","Big bang","Somente prototipação descartável"],c:1,e:"O software é construído em partes que funcionam, por prioridade (requisitos E antes dos D), com testes a cada entrega.",r:"Seção 1.3.1 · Slide 7"},
+{t:"objetivos",q:"Quantas etapas tem o plano de trabalho e quais foram feitas no TCC II?",o:["6 etapas; 1 a 3","8 etapas; 1 a 4","10 etapas; 1 a 5","4 etapas; todas"],c:1,e:"Etapas 1 a 4 (referencial, trabalhos relacionados, planejamento educacional, projeto) no TCC II. Etapas 5 a 8 (implementação, testes, aplicação e avaliação, documentação) no TCC III.",r:"Seção 1.3.2 · Slide 7"},
+// ---------- ITIL
+{t:"itil",q:"Qual a diferença entre implantar (deployment) e liberar (release)?",o:["São sinônimos","Implantar é instalar a versão no ambiente; liberar é deixar a funcionalidade disponível para o usuário","Implantar é escrever o código; liberar é testar","Liberar acontece sempre antes de implantar"],c:1,e:"Exemplo: o código novo do app da biblioteca é instalado na segunda (implantação), mas a tela nova só aparece para os usuários na sexta, quando é ligada (liberação).",r:"Seção 2.1.1 · Slide 8"},
+{t:"itil",q:"O que é um feature toggle?",o:["Um tipo de teste automatizado","Uma chave de configuração que liga ou desliga uma funcionalidade já instalada","Um servidor reserva","Um comitê de aprovação"],c:1,e:"Permite separar implantação de liberação: o código já está em produção, mas desligado até o dia do lançamento. Fonte: Mahdavi-Hezaveh, Dremann e Williams (2021).",r:"Seção 2.1.1 · Slide 8"},
+{t:"itil",q:"Uma mudança de baixo risco, bem conhecida e já pré-autorizada é do tipo:",o:["Padrão","Normal","Emergencial","Incidente"],c:0,e:"Exemplo: renovar o certificado de segurança todo mês com o mesmo procedimento. Pode seguir sem nova aprovação.",r:"Seção 2.1.1 · Slide 8"},
+{t:"itil",q:"Uma alteração no módulo de pagamentos que precisa ser avaliada e autorizada antes de ir para produção é uma mudança:",o:["Padrão","Normal","Emergencial","Opcional"],c:1,e:"Mudança normal = precisa de avaliação e autorização.",r:"Seção 2.1.1 · Slide 8"},
+{t:"itil",q:"Uma correção urgente de segurança para resolver um incidente em andamento é uma mudança:",o:["Padrão","Normal","Emergencial","Proibida"],c:2,e:"Mudança emergencial: precisa ser feita rápido e tem avaliação e aprovação simplificadas. É a única que pode furar o período de congelamento (RN10).",r:"Seção 2.1.1 · Slide 8"},
+{t:"itil",q:"O que é uma RFC?",o:["Um relatório de testes","A requisição de mudança (Request for Change), que documenta a alteração, os serviços afetados, os testes e o plano de reversão","Um tipo de servidor","Uma métrica de usabilidade"],c:1,e:"Na ferramenta, o aluno lê a RFC no comitê e confere no 'Registro de mudança' se ela foi aprovada ou está pendente.",r:"Seção 2.1.1 · Slide 8"},
+{t:"itil",q:"O que é o CAB?",o:["Um banco de dados","O comitê consultivo de mudanças (Change Advisory Board), que avalia risco e impacto e aprova ou rejeita","Uma ferramenta de CI","Um tipo de teste de carga"],c:1,e:"O ITIL 4 permite que a autoridade de mudança seja descentralizada, mas muitas organizações usam um comitê. Na ferramenta, o aluno faz o papel do CAB (UC16).",r:"Seção 2.1.1 · Slide 8 e 18"},
+{t:"itil",q:"O que é um período de congelamento (freeze period)?",o:["Quando o servidor desliga por frio","Um período em que nenhuma mudança deve ser feita, exceto as emergenciais","O tempo de espera do build","Uma janela ideal para implantar"],c:1,e:"Exemplo: semana de matrícula da universidade ou semana da Black Friday numa loja. Na ferramenta, agendar no congelamento é erro, exceto para mudança emergencial (RN10).",r:"Seção 2.1.1 · RN10 · Slide 8 e 19"},
+{t:"itil",q:"O que é uma janela de mudança?",o:["Uma tela do sistema","Um período combinado com o negócio em que implantar causa menor impacto aos usuários","Um tipo de teste","O tempo que o comitê leva para decidir"],c:1,e:"Exemplo: terça às 6h, fora do horário de pico. O calendário de mudanças (change schedule) mostra janelas, picos e congelamentos.",r:"Seção 2.1.1 · Slide 19"},
+{t:"itil",q:"O que faz a revisão pós-implementação (PIR)?",o:["Aprova a RFC","Avalia, depois da implantação, se os resultados esperados foram alcançados e, se não, documenta as causas e ações para não repetir","Executa os testes unitários","Libera a funcionalidade"],c:1,e:"Na ferramenta, após reverter uma versão, o aluno lê o log e o changelog, aponta a causa e escolhe uma ação preventiva, como criar um teste automatizado (UC18).",r:"Seção 2.1.1 · Slide 20"},
+{t:"itil",q:"Qual a diferença entre incidente e problema no ITIL?",o:["São a mesma coisa","Incidente é a interrupção do serviço (a reversão resolve); problema é a causa por trás dela","Problema é menor que incidente","Incidente só acontece em homologação"],c:1,e:"Reverter a versão restaura o serviço (trata o incidente), mas não elimina a causa (o problema). A PIR é onde o aluno investiga o problema.",r:"Seção 2.1.1 e 4.2.3 · Slide 20"},
+{t:"itil",q:"Qual o propósito da prática de habilitação de mudanças (change enablement)?",o:["Impedir qualquer mudança","Maximizar o número de mudanças bem-sucedidas, avaliando riscos, autorizando e gerenciando o agendamento","Automatizar os testes","Treinar novos funcionários"],c:1,e:"Não é para travar mudanças, é para que deem certo. Fonte: AXELOS (2019).",r:"Seção 2.1.1"},
+{t:"itil",q:"Na ferramenta, quem é o 'analista de deployment'?",o:["O professor","O papel que o aluno assume: quem prepara, coordena e acompanha as implantações e decide se a versão segue","Um personagem do comitê","O administrador do servidor"],c:1,e:"O TCC deixa claro que nem toda empresa usa esse cargo; é o nome dado às atividades de preparação, coordenação e acompanhamento (Leite et al., 2021).",r:"Seção 2.1.2 · Slide 6"},
+// ---------- CI/CD
+{t:"cicd",q:"O que é integração contínua (CI)?",o:["Implantar automaticamente em produção","Juntar o código de todos com frequência no repositório e rodar build e testes automáticos","Fazer reuniões diárias","Aprovar mudanças no CAB"],c:1,e:"Exemplo: cada vez que alguém envia código, o sistema compila e roda os testes sozinho, avisando logo se quebrou algo.",r:"Seção 2.1.3 · Slide 9"},
+{t:"cicd",q:"Qual a diferença entre entrega contínua e implantação contínua?",o:["Nenhuma","Na entrega contínua a versão fica pronta, mas uma pessoa decide quando vai para produção; na implantação contínua, passou nas verificações, vai sozinha","Entrega contínua não tem testes","Implantação contínua exige aprovação do CAB sempre"],c:1,e:"Na ferramenta, o pipeline para nos pontos de controle e espera a decisão do aluno, parecido com o que acontece na entrega contínua.",r:"Seção 2.1.3 · Slide 9"},
+{t:"cicd",q:"Qual a ordem correta das etapas do pipeline usada no TCC?",o:["Build, testes, integração, produção, homologação","Integração, build, testes, homologação, produção","Testes, integração, produção, build","Produção, homologação, testes"],c:1,e:"Integração do código, construção (build), testes automatizados, homologação (ambiente de teste parecido com o real) e produção.",r:"Seção 4.1 · Questão 3 do teste · Slide 3"},
+{t:"cicd",q:"O que é homologação?",o:["O ambiente onde os usuários reais usam o sistema","Um ambiente de teste parecido com o de produção, onde a versão é validada antes de ir para os usuários","O código-fonte","O comitê de mudanças"],c:1,e:"É o 'ensaio geral' antes da produção. No slide 16 o pipeline está parado justamente antes da homologação.",r:"Slide 3 e 16"},
+{t:"cicd",q:"O que é um artefato no pipeline?",o:["Um bug","O arquivo gerado na construção (pacote, imagem de contêiner) que é promovido entre os ambientes","O changelog","A RFC"],c:1,e:"É a 'caixa' que vai passando de ambiente em ambiente. Questão 2 do teste de conhecimento.",r:"Questão 2 do teste · Quadro 22"},
+{t:"cicd",q:"O que é a estratégia blue-green?",o:["Liberar para 5% dos usuários","Manter dois ambientes de produção iguais e trocar qual deles recebe o tráfego","Pintar a interface de azul e verde","Fazer deploy só às sextas"],c:1,e:"A versão nova sobe no ambiente 'verde' enquanto o 'azul' atende os usuários. Depois troca o tráfego. Se der errado, volta para o azul na hora. Fonte: Abdalkareem et al. (2023).",r:"Introdução · Seção 2.1 · Slide 9"},
+{t:"cicd",q:"O que é a implantação canário?",o:["Implantar só à noite","Liberar a versão nova primeiro para uma pequena parte dos usuários e observar antes de liberar para todos","Ter dois ambientes iguais","Implantar sem testes"],c:1,e:"Como o canário na mina: um grupo pequeno 'avisa' se algo está errado. No slide 19, a versão está em canário e o aluno compara as métricas com os limites.",r:"Seção 2.1 · Slide 9 e 19"},
+{t:"cicd",q:"Uma build parou com 'dependência não encontrada: biblioteca-pdf 2.1'. Qual a interpretação correta?",o:["Os testes de desempenho falharam","O artefato não foi gerado, então testes e implantação não podem rodar","Pode implantar, a falha foi antes dos testes","A RFC foi rejeitada"],c:1,e:"Se a construção falha, não existe artefato para testar ou implantar. É a questão 4 do seu teste de conhecimento.",r:"Questão 4 do teste"},
+{t:"cicd",q:"245 de 250 testes passaram, mas os 5 que falharam verificam o cálculo do valor da consulta. Qual a decisão?",o:["Avançar, 98% passou","Avançar e corrigir depois","Bloquear, porque as falhas atingem funcionalidade crítica","Ignorar, testes erram"],c:2,e:"Porcentagem alta não basta: importa O QUE falhou. Cálculo de valor é crítico. Questão 5 do teste.",r:"Questão 5 do teste"},
+{t:"cicd",q:"Segundo Galup, Dattero e Quan (2020), como ITIL e DevOps se relacionam?",o:["São concorrentes e incompatíveis","São complementares: as práticas de serviço do ITIL podem conviver com a automação e colaboração do DevOps, sobretudo com o ITIL 4","DevOps substituiu o ITIL","ITIL é uma ferramenta de DevOps"],c:1,e:"É o argumento que sustenta juntar os dois na ferramenta, sem dizer que são a mesma coisa.",r:"Seção 2.1.3"},
+// ---------- ensino
+{t:"ensino",q:"Segundo Hattie e Timperley (2007), qual feedback ajuda mais na aprendizagem?",o:["Só dizer 'certo' ou 'errado'","Elogios pessoais","Feedback que explica o critério e o próximo passo, sobre a tarefa e o processo","Feedback com nota apenas"],c:2,e:"Wisniewski, Zierer e Hattie (2020) confirmaram: feedback com mais informação (explicação da tarefa e do processo) tem efeito maior. Por isso o feedback da ferramenta tem 3 partes.",r:"Seção 2.2.1 · Slide 9"},
+{t:"ensino",q:"Quais são as três partes do feedback da ferramenta?",o:["Nota, ranking e conquista","Resultado, critério e próximo passo","Pergunta, resposta e dica","Início, meio e fim"],c:1,e:"Resultado = o que aconteceu na simulação. Critério = a regra ou evidência que importava. Próximo passo = onde olhar antes de tentar de novo.",r:"Seção 4.2.4 · Quadro 7 · Slide 14"},
+{t:"ensino",q:"Por que a pontuação NÃO premia a rapidez?",o:["Porque é difícil medir tempo","Porque premiar rapidez incentiva clicar sem ler as evidências","Porque os alunos pediram","Porque o servidor é lento"],c:1,e:"O tempo é registrado (para a avaliação), mas não dá pontos (RN07). Gamificação deve premiar a qualidade da decisão (Sailer e Homner, 2020).",r:"Seção 2.2.2 e 4.2.5 · RN07 · Slide 14"},
+{t:"ensino",q:"Qual estudo dá suporte ao uso de simulação para habilidades complexas no ensino superior?",o:["Chernikova et al. (2020)","Spearman (1904)","Brooke (1996)","Hake (1998)"],c:0,e:"Meta-análise com efeitos positivos, mas o próprio TCC ressalva: a maioria dos estudos é da área médica, então não garante o mesmo efeito em implantação de software.",r:"Seção 2.2.3 · Slide 9"},
+{t:"ensino",q:"O que é gamificação, segundo o TCC?",o:["Transformar a aula num videogame completo","Usar elementos de jogos (pontos, níveis, desafios, progresso) em atividades que não são um jogo completo","Dar prêmios em dinheiro","Usar realidade virtual"],c:1,e:"Fonte: Zainuddin et al. (2020). Na ferramenta: pontuação, progressão por níveis, conquistas e rankings.",r:"Seção 2.2.2"},
+{t:"ensino",q:"O que diferencia um software educacional de um software de uso geral, como uma plataforma de CI/CD?",o:["O preço","A intencionalidade pedagógica: é feito para objetivos de ensino, organizado para o público e mostra ao aluno sua compreensão","A linguagem de programação","Rodar no navegador"],c:1,e:"Jenkins pode ser usado em aula, mas foi feito para produção. A sua ferramenta foi feita para ensinar.",r:"Seção 2.2"},
+// ---------- trabalhos
+{t:"trabalhos",q:"Quantos trabalhos relacionados foram analisados?",o:["Três","Cinco da busca + um (Veldyaeva) encontrado na fundamentação = seis","Dez","Cem"],c:1,e:"Fluxo do slide 10: 100 registros, 10 pré-selecionados, 5 após leitura completa, mais o de Veldyaeva, Fitz e Scheeg (2024) = 6 analisados.",r:"Seção 3.1 · Slide 10"},
+{t:"trabalhos",q:"Qual ferramenta de busca foi adotada como base para selecionar os trabalhos?",o:["Scopus","Consensus (busca semântica com IA)","IEEE Xplore apenas","Wikipedia"],c:1,e:"Google Scholar também foi usado, mas trazia muito resultado de outras áreas (deploy de modelos de ML, embarcados). O Consensus trouxe resultados mais próximos do tema.",r:"Seção 3.1 · Slide 10"},
+{t:"trabalhos",q:"Por que o trabalho de Veldyaeva, Fitz e Scheeg (2024) entrou mesmo sem aparecer nas buscas?",o:["Foi indicado pelo orientador","Foi encontrado durante a fundamentação, atende aos critérios e é o único que usa simulação para ensinar ITIL 4","Porque é brasileiro","Porque é o mais citado"],c:1,e:"Provavelmente é indexado como 'IT Service Management', e não 'Deployment Management'. Ele trata ITIL sem CI/CD.",r:"Seção 3.1 e 3.7 · Slide 10"},
+{t:"trabalhos",q:"Qual lacuna os trabalhos relacionados mostram?",o:["Ninguém estuda DevOps","Os trabalhos tratam automação de CI/CD e governança ITIL separadamente; nenhum une os dois num ambiente simulado","Faltam ferramentas pagas","Todos usam simulação"],c:1,e:"Os 5 de DevOps usam CI/CD real e exigem infraestrutura, sem ITIL. O de Veldyaeva tem ITIL e simulação, mas sem CI/CD nem implantação.",r:"Seção 3.8 · Slide 10"},
+{t:"trabalhos",q:"Qual abordagem pedagógica Zarour, Akour e Alenezi (2024) usaram, e o que você aproveitou dela?",o:["Gamificação; os rankings","System-Based Learning (aprendizagem baseada em sistemas); mostrar o fluxo completo antes de detalhar cada etapa","Sala invertida; vídeos","PBL; os containers Docker"],c:1,e:"A ordem da sua trilha (fluxo todo primeiro) vem desse trabalho.",r:"Seção 3.3 e 4.2.2"},
+{t:"trabalhos",q:"O que Sarmiento-Calisaya et al. (2024) encontraram que ajudou a definir a trilha?",o:["Que os alunos odeiam DevOps","Que a etapa de implantação contínua (com Docker) foi o maior gargalo técnico e cognitivo dos alunos","Que o ITIL é obsoleto","Que bastam 10 minutos de aula"],c:1,e:"Por isso a prática da sua ferramenta se concentra na implantação, que é a parte mais difícil para os alunos.",r:"Seção 3.2 e 4.2.2"},
+{t:"trabalhos",q:"O que você aproveitou de Alves e Rocha (2021)?",o:["O uso de realidade virtual","A atribuição de um responsável pelas liberações (Release Engineer) e a importância da comunicação, que vira o papel de analista de deployment que justifica decisões","O questionário SUS","O modelo ADDIE"],c:1,e:"Eles também combinaram questionários com dados dos repositórios, parecido com o que você faz ao combinar questionários e registros da ferramenta.",r:"Seção 3.5 e 3.8"},
+// ---------- projeto educacional
+{t:"projeto",q:"Quem é o público-alvo da ferramenta?",o:["Profissionais de TI certificados","Estudantes de computação que já cursaram programação e engenharia de software, sem experiência com implantação","Alunos do ensino médio","Professores de ITIL"],c:1,e:"Não se presume experiência com implantação, GSTI ou CI/CD.",r:"Seção 4.2.1 · Slide 12"},
+{t:"projeto",q:"Quais são os quatro módulos da trilha, em ordem?",o:["Pipeline, Fundamentos, Reversão, Comitê","Fundamentos de implantação; Pipeline de CI/CD; Decisão de promoção; Estratégias e reversão","ITIL, DevOps, Docker, Kubernetes","Quiz, Pipeline, Ranking, Exportação"],c:1,e:"Do simples ao complexo. O módulo 3 (decisão de promoção, com comitê e calendário) é o centro do trabalho.",r:"Quadro 4 · Slide 12"},
+{t:"projeto",q:"Quanto o aluno precisa tirar para liberar o próximo módulo?",o:["50% na primeira tentativa","60% da nota máxima na melhor tentativa","70% em todas as tentativas","100%"],c:1,e:"RN01: vale a MELHOR tentativa para progressão. Já para pontuação e ranking vale só a PRIMEIRA (RN03).",r:"RN01 · Slide 12"},
+{t:"projeto",q:"Pelo Quadro 6, quando a decisão esperada é AVANÇAR?",o:["Testes aprovados e autorização pendente","Falha técnica e autorização concedida","Testes aprovados e autorização concedida","Sempre que o prazo estiver apertado"],c:2,e:"Só avança se os DOIS estiverem ok. Qualquer outra combinação: bloquear.",r:"Quadro 6 · Slide 13"},
+{t:"projeto",q:"Versão 2.4.0 do AgendaFácil: 148 testes passaram, mas a RFC está pendente. O que fazer?",o:["Avançar, os testes passaram","Bloquear, porque mudança normal exige autorização","Reverter","Pedir dica e avançar"],c:1,e:"É a 'armadilha' que a ferramenta quer ensinar: tudo verde nos testes não basta se a mudança não foi autorizada.",r:"Seção 4.2.3 · Slide 16"},
+{t:"projeto",q:"Por que existem cenários com mudança padrão?",o:["Para facilitar a nota","Para o aluno não aplicar a regra 'sem autorização, bloqueia' mecanicamente: mudança padrão já é pré-autorizada e pode seguir","Porque o ITIL exige","Para reduzir o número de cenários"],c:1,e:"Junto com os distratores e as variações sorteadas, evita a decoreba.",r:"Seção 4.2.3 · Slide 13"},
+{t:"projeto",q:"O que são os 'distratores' nas evidências?",o:["Erros de digitação","Avisos sem importância colocados de propósito (como um alerta de CPU que não afeta o serviço) para ver se o aluno separa o relevante do irrelevante","Personagens do comitê","Perguntas do quiz"],c:1,e:"Exemplo do slide 19: alerta de uso de CPU sem impacto no serviço, no painel de métricas.",r:"Seção 4.2.3 · Slide 13 e 19"},
+{t:"projeto",q:"Por que a ferramenta sorteia variações do cenário a cada tentativa?",o:["Para deixar mais bonito","Para o aluno não decorar a resposta: cada variação tem sua própria decisão esperada e ele precisa analisar as evidências de novo","Para economizar servidor","Para o professor não saber a resposta"],c:1,e:"RF31 e RN11. A variação sorteada fica registrada na tentativa para a correção considerar a mesma situação que o aluno viu.",r:"Seção 4.2.3 · RN11 · Slide 13"},
+{t:"projeto",q:"No comitê, a RFC mexe em pagamentos e não tem plano de reversão; o gerente pressiona pelo prazo. Qual decisão é adequada?",o:["Aprovar, o prazo é importante","Aprovar com a condição de ter plano de reversão, ou rejeitar","Ignorar a RFC","Classificar como mudança padrão"],c:1,e:"Aprovar só por pressão de prazo é o erro que o cenário quer pegar.",r:"Seção 4.2.3 · Slide 18"},
+{t:"projeto",q:"Quanto vale cada coisa na pontuação de uma decisão?",o:["Decisão 5, justificativa 10","Decisão correta 10, justificativa correta +5, impacto correto +2, dica −2","Tudo vale 1 ponto","Decisão 10, tempo rápido +5"],c:1,e:"RN02. Velocidade não dá ponto.",r:"Seção 4.2.5 · RN02 · Slide 14"},
+{t:"projeto",q:"Por que só a primeira tentativa conta para nota e ranking?",o:["Para punir o aluno","Porque na segunda o aluno já viu o feedback, e acertar pode ser só lembrança da resposta","Por limitação do banco","Porque o professor pediu"],c:1,e:"RN03. As outras tentativas contam para progressão e conquistas, então o aluno pode repetir para aprender sem inflar a nota.",r:"Seção 4.2.5 · RN03 · Slide 14"},
+{t:"projeto",q:"O que significa 'decisão certa com justificativa errada'?",o:["Que o aluno é ótimo","Sinal de que o aluno pode ter acertado no chute, sem entender o critério","Erro do sistema","Que a pergunta estava errada"],c:1,e:"É medido na métrica M5 (meta: no máximo 15% das decisões corretas). O feedback reafirma a decisão mas explica o critério certo.",r:"Seção 4.2.4 · Slide 17"},
+{t:"projeto",q:"Como se define o impacto esperado de uma mudança (RN14)?",o:["Pela média das características","Pelo nível MAIS ALTO entre as características da versão (Quadro 8)","Pela opinião do aluno","Sempre médio"],c:1,e:"Basta uma característica alta para a falha ser grave. Exemplo: mexe só num relatório interno, mas altera a estrutura do banco = impacto alto.",r:"Seção 4.2.4 · Quadro 8 · RN14"},
+{t:"projeto",q:"A 'previsão' (o aluno diz o que vai acontecer antes de ver o resultado) altera a nota?",o:["Sim, vale 5 pontos","Não, é usada no feedback e na avaliação (RN08)","Sim, desconta 2 se errar","Só no módulo 1"],c:1,e:"Ela alimenta a métrica M7 (proporção de previsões confirmadas, meta 60%).",r:"Seção 4.2.4 · RN08"},
+{t:"projeto",q:"Qual é a conquista 'Guardião da produção'?",o:["Concluir um módulo sem dicas","Bloquear corretamente três versões com falha técnica ou sem autorização","Ser o primeiro do ranking","Reverter uma versão rápido"],c:1,e:"Outras: Leitor de evidências (5 justificativas certas seguidas), Sem atalhos (módulo sem dicas), Reação rápida, Aprendeu com o erro.",r:"Quadro 9"},
+{t:"projeto",q:"Por que os rankings mostram só o apelido?",o:["Para economizar espaço","Para reduzir exposição individual e competição excessiva; o nome real só o professor vê","Porque o nome não é coletado","Por estética"],c:1,e:"RN04. Também ajuda na LGPD.",r:"Seção 4.2.5 · RN04 · Slide 14"},
+{t:"projeto",q:"No agendamento, por que implantar sexta à noite antes da semana de matrícula é ruim?",o:["Porque é caro","Porque a versão certa no momento errado também é risco: se der problema, cai justo no período crítico, com equipe reduzida","Porque o servidor desliga","Não é ruim"],c:1,e:"É a lição do ponto de controle de agendamento (UC17).",r:"Seção 4.2.3 · Slide 19"},
+// ---------- sistema
+{t:"sistema",q:"Quantos requisitos funcionais, não funcionais e regras de negócio o TCC tem?",o:["25 RF, 10 RNF, 7 RN","31 RF, 13 RNF, 14 RN","31 RF, 14 RNF, 13 RN","19 RF, 13 RNF, 14 RN"],c:1,e:"31 RF, 13 RNF, 14 RN e 19 casos de uso. Dos 31 RF, 28 são essenciais e 3 desejáveis (RF19, RF24 e RF25).",r:"Seção 4.3 · Slide 15"},
+{t:"sistema",q:"Quais requisitos funcionais são desejáveis (D)?",o:["RF19 (escolher a estratégia), RF24 (narrativa) e RF25 (resumo das evidências não usadas)","RF01, RF02 e RF03","Todos os de gamificação e ranking","Nenhum, todos são essenciais"],c:0,e:"São 28 essenciais e 3 desejáveis. Os desejáveis só entram se sobrar tempo no TCC III: escolher a estratégia de implantação (blue-green, canário), atividades em narrativa e o resumo, no fim do módulo, das evidências que o aluno mais deixou de olhar.",r:"Seção 4.3.1 · Slide 15"},
+{t:"sistema",q:"Qual a diferença entre requisito funcional e não funcional?",o:["Nenhuma","Funcional diz O QUE o sistema faz; não funcional diz COMO ele deve ser (qualidade e restrições)","Funcional é do professor e não funcional do aluno","Não funcional é o que não vai ser feito"],c:1,e:"RF11: mostrar feedback em 3 partes (o quê). RNF07: aguentar 40 usuários ao mesmo tempo (como).",r:"Seção 4.3 · Slide 15"},
+{t:"sistema",q:"O que significam as prioridades (E) e (D)?",o:["Estudante e Docente","Essencial (necessário ao fluxo básico e à avaliação) e Desejável (pode vir em incrementos posteriores)","Entrada e Dados","Externo e Departamental"],c:1,e:"Ligado ao processo iterativo e incremental e ao risco de crescimento do escopo: se atrasar, os desejáveis ficam de fora.",r:"Seção 4.3"},
+{t:"sistema",q:"Qual RNF exige que estados não sejam indicados só por cor?",o:["RNF01","RNF05","RNF07","RNF13"],c:1,e:"RNF05: sucesso, falha e alerta com ícone e texto, para quem tem daltonismo. Aparece no slide 16.",r:"RNF05 · Slide 16"},
+{t:"sistema",q:"Qual é o caso de uso central do sistema?",o:["UC01 Criar conta","UC05 Realizar atividade de pipeline","UC14 Exportar dados","UC10 Rankings"],c:1,e:"UC05 inclui UC06 (inspecionar evidências) e UC07 (decidir), que inclui UC08 (justificar). UC15, UC16, UC17, UC18 e UC19 estendem o UC05.",r:"Seção 4.5.1"},
+{t:"sistema",q:"Qual a diferença entre 'include' e 'extend' nos casos de uso do TCC?",o:["Nenhuma","Include acontece sempre (toda decisão inclui justificativa); extend acontece só em certas condições (dica, previsão, comitê)","Extend é obrigatório","Include é só para o professor"],c:1,e:"Exemplo: UC07 inclui UC08 porque toda decisão precisa de justificativa. UC15 (dica) estende UC05 porque só ocorre se o aluno pedir.",r:"Seção 4.5.1"},
+{t:"sistema",q:"Por que a correção das decisões acontece no servidor (API) e não no navegador?",o:["Porque o navegador é lento","Para a resposta certa nunca ficar visível no código da página e os dados da avaliação serem gerados num lugar só","Por exigência do React","Para economizar internet"],c:1,e:"Se a correção ficasse no navegador, o aluno poderia abrir as ferramentas do desenvolvedor e ver a resposta.",r:"Seção 4.5.2 · Slide 11"},
+{t:"sistema",q:"Por que os cenários são arquivos JSON?",o:["Porque é mais bonito","Para criar cenários novos sem mexer no código: o motor de simulação lê os dados (RNF03)","Porque o PostgreSQL não aceita texto","Para o aluno editar"],c:1,e:"Como uma fase de jogo descrita num arquivo. Eles são validados pelo Zod e guardados em colunas JSONB do PostgreSQL.",r:"Seção 4.1 e 4.6 · RNF03 · Slide 11"},
+{t:"sistema",q:"Qual arquitetura o sistema segue?",o:["Peer-to-peer","Cliente-servidor: SPA no navegador + API REST + banco relacional","Só front-end","Microsserviços em Kubernetes"],c:1,e:"RNF02. A API tem módulos: Autenticação, Turmas, Conteúdo e Cenários, Motor de simulação, Feedback, Gamificação, Relatórios e Exportação.",r:"Seção 4.5.2"},
+{t:"sistema",q:"Por que progresso e rankings NÃO são guardados direto no banco?",o:["Esquecimento","São calculados a partir das tentativas, o que evita duplicar dados quando o aluno está em mais de uma turma (RN06)","O banco não suporta","Para o professor não ver"],c:1,e:"Também o tempo médio é calculado na consulta. Exemplo: 8, 10 e 12 minutos = média de 10.",r:"Seção 4.5.4"},
+{t:"sistema",q:"Qual o papel do Prisma?",o:["Desenhar o pipeline","Acesso a dados: gera o esquema do banco a partir do modelo e controla a evolução por migrações","Testes no navegador","Autenticação"],c:1,e:"Outras: React Flow (desenhar pipeline), dnd-kit (arrastar), Recharts (gráficos), JWT e bcrypt (login e senha), Zod (validar JSON), Vitest e Playwright (testes).",r:"Quadro 17 · Slide 21"},
+{t:"sistema",q:"Por que usar TypeScript no front-end e no back-end?",o:["É obrigatório no NestJS","Uma linguagem só reduz o que precisa ser aprendido e permite compartilhar tipos entre tela e API","É mais rápido que C","Porque o PostgreSQL exige"],c:1,e:"Você mesmo tem pouca experiência com essas tecnologias, então menos coisa para aprender é um argumento honesto.",r:"Seção 4.6 · Slide 21"},
+{t:"sistema",q:"O que tem de 'meta' na forma como a própria ferramenta será entregue?",o:["Nada","Ela será publicada por um pipeline de CI/CD no GitHub Actions (build, testes, imagem Docker, homologação, aprovação, produção), o mesmo processo que ensina","Será entregue em pen drive","Usa o Jenkins da universidade"],c:1,e:"RNF12 e RNF13. Bom ponto para fechar o slide de tecnologias.",r:"Seção 4.6 · Slide 21"},
+{t:"sistema",q:"Qual cuidado existe na escolha entre Render e Railway?",o:["A cor do painel","Limites de conexões simultâneas ao banco e hibernação no plano gratuito, que podem atrapalhar 40 alunos ao mesmo tempo; por isso haverá teste de carga antes do piloto","Nenhum","O preço em dólar"],c:1,e:"Ligado ao RNF07 e ao risco 'Falhas técnicas na aplicação' do Quadro 2.",r:"Seção 4.6 · Quadro 2"},
+{t:"sistema",q:"Quantas telas foram prototipadas e em que resolução?",o:["8 telas em 1920×1080","12 telas em 1366×768","20 telas em celular","5 telas"],c:1,e:"Figuras 2 a 13, média fidelidade, visual inspirado em fliperama. Nome DeployLab é provisório e os dados são fictícios.",r:"Seção 4.4 · RNF04"},
+// ---------- avaliação
+{t:"avaliacao",q:"O que é o GQM?",o:["Um banco de dados","Goal Question Metric: organiza a avaliação em objetivo, perguntas e métricas (com metas)","Um tipo de teste unitário","Uma ferramenta de CI"],c:1,e:"Em vez de perguntar 'a ferramenta é boa?', define um objetivo (G1), perguntas concretas (Q1 a Q6) e números que respondem cada pergunta (M1 a M13). Fonte: Basili, Caldiera e Rombach (1994).",r:"Seção 4.7.1 · Slide 22"},
+{t:"avaliacao",q:"Quantos objetivos, questões e métricas tem o GQM do TCC?",o:["3 objetivos, 10 questões","1 objetivo (G1), 6 questões (Q1–Q6), 13 métricas (M1–M13)","2 objetivos, 4 questões","1 objetivo, 3 questões, 5 métricas"],c:1,e:"G1: avaliar a contribuição da ferramenta para a aprendizagem, do ponto de vista de estudantes de computação sem experiência em implantação.",r:"Quadros 18 e 19 · Slide 22"},
+{t:"avaliacao",q:"Qual é a meta do ganho normalizado (M2)?",o:["Pelo menos 0,1","Pelo menos 0,3 (ganho médio, segundo Hake, 1998)","Exatamente 1","Pelo menos 0,9"],c:1,e:"Faixas de Hake: baixo < 0,3; médio 0,3 a 0,7; alto ≥ 0,7.",r:"Quadro 19 · Slide 22"},
+{t:"avaliacao",q:"Um aluno tirou 40% no pré-teste e 70% no pós. Qual o ganho normalizado?",o:["0,3","0,5","0,7","30"],c:1,e:"(pós − pré) / (100 − pré) = (70 − 40)/(100 − 40) = 30/60 = 0,5. Ele ganhou 30 dos 60 pontos que ainda podia ganhar.",r:"Seção 4.7.4"},
+{t:"avaliacao",q:"Por que o ganho normalizado é calculado com as médias da turma, e não aluno por aluno?",o:["Porque é mais fácil","Para evitar divisão por zero quando um aluno tira 100% no pré-teste, como propõe Hake (1998)","Para esconder alunos ruins","Porque o Excel exige"],c:1,e:"Se o pré for 100, o denominador (100 − 100) vira zero.",r:"Seção 4.7.4"},
+{t:"avaliacao",q:"Qual teste estatístico compara pré e pós-teste?",o:["Teste t de Student","Teste de postos sinalizados de Wilcoxon, com p < 0,05","Qui-quadrado","ANOVA"],c:1,e:"Wilcoxon serve para amostras pareadas (o mesmo aluno antes e depois) pequenas, que podem não seguir distribuição normal.",r:"Seção 4.7.4"},
+{t:"avaliacao",q:"Para que serve o coeficiente de Spearman na avaliação?",o:["Medir usabilidade","Verificar se a variação da autoavaliação acompanha a variação da nota (Q5, métrica M11)","Contar alunos","Calcular a média do SUS"],c:1,e:"Se quem mais aumentou a autoavaliação também mais aumentou a nota, a correlação é positiva e a percepção dos alunos é um indício confiável.",r:"Seção 4.7.4 · Slide 22"},
+{t:"avaliacao",q:"Por que comparar aprendizagem percebida com aprendizagem medida?",o:["Para dobrar os dados","Porque o aluno pode achar que aprendeu muito sem ter aprendido; a autoavaliação se relaciona mais com satisfação do que com aprendizagem (Sitzmann et al., 2010)","Porque o SUS exige","Para dar nota ao professor"],c:1,e:"Exemplo: aluno se dá 2 antes e 5 depois, mas a nota no teste não muda. Percebeu uma aprendizagem que o teste não confirmou.",r:"Seção 4.7.1 · Slide 22"},
+{t:"avaliacao",q:"Qual é a meta do SUS (M12) e de onde ela vem?",o:["Acima de 50","Média acima de 70 (Bangor, Kortum e Miller, 2008; média de tecnologias educacionais perto de 70 segundo Vlachogianni e Tselios, 2022)","Acima de 90","Exatamente 100"],c:1,e:"SUS vai de 0 a 100. Acima de 70 é usabilidade aceitável.",r:"Quadro 19 · Slide 22"},
+{t:"avaliacao",q:"Um aluno responde 4 em todas as afirmações ímpares do SUS e 2 em todas as pares. Qual a pontuação?",o:["60","75","80","100"],c:1,e:"Ímpares: 4 − 1 = 3 cada. Pares: 5 − 2 = 3 cada. 10 × 3 = 30. 30 × 2,5 = 75.",r:"Seção 4.7.3.3"},
+{t:"avaliacao",q:"Por que no SUS as afirmações ímpares são positivas e as pares negativas?",o:["Erro de tradução","Para obrigar o aluno a ler cada uma com atenção, em vez de marcar tudo igual","Para dar nota mais alta","Por sorteio"],c:1,e:"Tradução usada: Lourenço, Carmona e Lopes (2022). Original: Brooke (1996).",r:"Seção 4.7.3.3"},
+{t:"avaliacao",q:"Quantas questões tem o teste de conhecimento e como ele evita a memorização?",o:["20 questões iguais às da ferramenta","10 questões de múltipla escolha, com sistemas e dados diferentes dos cenários, sem feedback no pré-teste e em outra ordem no pós","5 questões abertas","30 questões de verdadeiro ou falso"],c:1,e:"2 a 3 questões por módulo; cada uma vale 10% da nota.",r:"Seção 4.7.3.1"},
+{t:"avaliacao",q:"O que é o 'efeito de testagem' e como o TCC o reduz?",o:["Quando o teste é difícil demais","O aluno melhora no pós-teste só por já conhecer as questões; reduzido por não dar feedback no pré-teste e mudar a ordem das questões","Quando o sistema cai","Quando os alunos colam"],c:1,e:"Referências recentes: Pan e Carpenter (2023) e Polack e Miller (2022).",r:"Seção 4.7.2"},
+{t:"avaliacao",q:"Qual é a principal limitação do desenho da avaliação?",o:["Usar SUS","Grupo único, sem grupo de controle: se a nota subir, não dá para afirmar que foi só por causa da ferramenta","Usar Wilcoxon","Ter pré-teste"],c:1,e:"Você assume isso abertamente: é adequado para uma avaliação inicial em sala, mas limita as conclusões.",r:"Seção 4.7.2 · Slide 23 e 24"},
+{t:"avaliacao",q:"Quanto tempo dura a aplicação com a turma?",o:["30 minutos","Cerca de 1h50: apresentação 10, pré-teste 15, uso ~60, pós-teste 15, questionário 10 (em 1 ou 2 encontros)","Uma semana","4 horas"],c:1,e:"Se não couber, divide em dois encontros: pré-teste no início do primeiro e pós-teste no fim do segundo.",r:"Quadro 20 · Slide 23"},
+{t:"avaliacao",q:"Por que fazer uma aplicação piloto antes da turma?",o:["Para treinar o professor","Para achar falhas, instruções confusas e ajustar o tempo das atividades antes da aplicação real","Porque é obrigatório por lei","Para gerar o ranking"],c:1,e:"As metas definidas pelo próprio trabalho também serão revistas após o piloto.",r:"Seção 4.7.2 · Slide 23"},
+{t:"avaliacao",q:"Por que a meta de 70% em M4 é maior que os 60% de liberação de módulo?",o:["Por acaso","Porque o desempenho da turma deve superar o mínimo exigido de cada estudante","Porque 70 é o SUS","Porque o orientador pediu"],c:1,e:"M4 = proporção de decisões corretas na primeira tentativa, por ponto de controle.",r:"Seção 4.7.1"},
+{t:"avaliacao",q:"Quais são as quatro fontes de dados da avaliação?",o:["Notas da disciplina, frequência, ranking e redes sociais","Teste de conhecimento (pré e pós), autoavaliação, registros da ferramenta e questionário final; mais o roteiro de observação","Só o SUS","Entrevistas e grupo focal"],c:1,e:"Todos identificados só pelo código do participante, o mesmo em todos os instrumentos.",r:"Seção 4.7 e 4.7.3"},
+{t:"avaliacao",q:"De onde vêm as afirmações de aprendizagem percebida do questionário?",o:["Do SUS","Adaptadas do modelo MEEGA+ (Petri, Gresse von Wangenheim e Borgatto, 2017)","Inventadas sem base","Do ITIL"],c:1,e:"Exemplo: 'O feedback explicou o motivo dos meus erros.' São 6 afirmações (Quadro 24).",r:"Seção 4.7.3.3"},
+// ---------- fechamento
+{t:"fechamento",q:"Quais são as três limitações citadas nas considerações finais?",o:["Custo, tempo e equipe","É introdutória e não substitui infraestrutura real; os cenários simplificam a realidade; a avaliação não tem grupo de controle","Falta de banco, de servidor e de testes","Nenhuma"],c:1,e:"Saber as três de cor ajuda muito na hora das perguntas.",r:"Seção 5 · Slide 24"},
+{t:"fechamento",q:"Em que período está previsto o TCC III?",o:["Ago a Nov/2026","Mar a Jun/2027","Jan a Dez/2027","Já foi feito"],c:1,e:"Março: revisar requisitos e preparar ambiente. Março e abril: telas e atividades. Abril e maio: integração e testes. Maio: piloto e aplicação. Junho: análise e apresentação. Redação o tempo todo.",r:"Seção 5.1 · Quadro 26 · Slide 25"},
+{t:"fechamento",q:"Se o cronograma do TCC III apertar, o que é adiado?",o:["A gamificação, porque é opcional","Os requisitos desejáveis: escolher a estratégia (RF19), a narrativa (RF24) e o resumo de evidências (RF25)","A avaliação com os alunos","Os feedbacks"],c:1,e:"Plano de contingência do risco 'crescimento do escopo' (Quadro 2): priorizar conteúdo, simulação e feedback e adiar os desejáveis (D). Conquistas e rankings (RF21 a RF23) são essenciais, por isso feedbacks e gamificação aparecem juntos no cronograma, entre março e abril.",r:"Quadro 2 · Seção 4.3.1 · Slide 25"},
+{t:"fechamento",q:"Qual risco tem probabilidade BAIXA no Quadro 2?",o:["Crescimento do escopo","Exposição dos dados dos participantes (e indisponibilidade da turma ou do professor)","Poucos participantes","Instrumentos pouco claros"],c:1,e:"Contra exposição de dados: pseudonimizar a exportação (RNF06), restringir acesso e apagar dados identificáveis no fim, em linha com a LGPD.",r:"Quadro 2"},
+{t:"fechamento",q:"O que fazer se menos de 10 alunos participarem?",o:["Cancelar o TCC","Aplicar em mais de uma turma e apresentar os resultados de forma descritiva, sem generalizar","Inventar dados","Usar só o SUS"],c:1,e:"Plano de contingência do risco 'Poucos participantes'.",r:"Quadro 2"}
+];
+const CARDS = [
+{t:"itil",f:"ITIL 4",b:"Conjunto de boas práticas para gerenciar serviços de TI, organizado num sistema de valor de serviço com quatro dimensões. É a referência mais usada pelo mercado (AXELOS, 2019).",ex:"Como um 'manual de boas maneiras' para quem cuida de sistemas que outras pessoas usam."},
+{t:"itil",f:"GSTI / ITSM",b:"Gestão de Serviços de TI (IT Service Management): práticas para entregar valor aos usuários por meio dos serviços de TI.",ex:"Cuidar do sistema de matrículas para que funcione bem na semana de matrícula, e não só programá-lo."},
+{t:"itil",f:"Gerenciamento de implantação",b:"Prática do ITIL que move componentes novos ou alterados (software, hardware, documentação) para os ambientes de teste, homologação e produção, controlando riscos.",ex:"Levar a versão 2.4.0 do AgendaFácil de homologação para produção sem derrubar o serviço."},
+{t:"itil",f:"Gerenciamento de liberação",b:"Prática que disponibiliza serviços e funcionalidades novos ou alterados para uso.",ex:"Ligar a tela nova de reservas para os usuários na sexta-feira."},
+{t:"itil",f:"Implantar × liberar",b:"Implantar = instalar no ambiente. Liberar = deixar o usuário usar. Podem acontecer em momentos diferentes.",ex:"Instalado na segunda (implantado), visível só na sexta (liberado)."},
+{t:"itil",f:"Feature toggle",b:"Chave de configuração que liga ou desliga uma funcionalidade já instalada. Separa implantação de liberação.",ex:"O botão 'pagar com Pix' já está no código em produção, mas desligado até o lançamento."},
+{t:"itil",f:"Habilitação de mudanças (change enablement)",b:"Prática que maximiza o número de mudanças bem-sucedidas: avalia riscos, autoriza e gerencia o agendamento.",ex:"Antes de mexer nos pagamentos, alguém avalia o risco e decide se e quando pode."},
+{t:"itil",f:"Mudança",b:"Adição, modificação ou remoção de qualquer coisa que possa afetar um serviço.",ex:"Trocar um texto na tela, mudar o cálculo de juros, atualizar o banco de dados."},
+{t:"itil",f:"RFC",b:"Request for Change, a requisição de mudança. Documenta a alteração, os serviços afetados, os testes e o plano de reversão.",ex:"RFC-1042: 'alterar cálculo de pagamento; testes: 148; reversão: não informada'."},
+{t:"itil",f:"Mudança padrão",b:"Baixo risco, bem conhecida, pré-autorizada. Segue sem nova aprovação.",ex:"Renovar o certificado de segurança todo mês do mesmo jeito."},
+{t:"itil",f:"Mudança normal",b:"Precisa ser avaliada e autorizada antes de ir para produção.",ex:"Alterar o módulo de pagamentos."},
+{t:"itil",f:"Mudança emergencial",b:"Precisa ser feita rápido (ex.: resolver um incidente); avaliação e aprovação simplificadas. Pode furar o congelamento.",ex:"Corrigir uma falha de segurança sendo explorada agora."},
+{t:"itil",f:"Autoridade de mudança / CAB",b:"Quem pode aprovar cada tipo de mudança. Em muitas empresas é o Change Advisory Board, comitê que avalia risco e impacto e aprova ou rejeita.",ex:"Gerente de produto, analista de segurança e operações reunidos decidindo sobre a RFC."},
+{t:"itil",f:"Calendário de mudanças",b:"Change schedule: planeja e informa quando as mudanças vão acontecer. Mostra janelas, horários de pico e congelamentos.",ex:"Tela de agendamento do DeployLab (Figura 8)."},
+{t:"itil",f:"Janela de mudança",b:"Período combinado com o negócio em que implantar causa menor impacto.",ex:"Terça às 6h, fora do pico das 19h às 23h."},
+{t:"itil",f:"Período de congelamento",b:"Freeze period: nenhuma mudança, exceto emergencial.",ex:"Semana de matrícula; semana da Black Friday."},
+{t:"itil",f:"PIR",b:"Post-Implementation Review, revisão pós-implementação: verifica se a mudança atingiu o esperado e, se não, a causa e como evitar.",ex:"Log mostra timeout no banco; changelog mostra consulta nova sem índice; ação: teste de desempenho no pipeline."},
+{t:"itil",f:"Incidente × problema",b:"Incidente = o serviço caiu ou piorou (reverter resolve). Problema = a causa por trás (precisa ser investigada).",ex:"Reverter tira os usuários do erro; descobrir que faltou um índice resolve o problema."},
+{t:"itil",f:"Rollback (reversão)",b:"Voltar para a versão anterior quando a nova degrada o serviço.",ex:"Taxa de erros subiu de 0,5% para 4% com limite de 1%: reverter."},
+{t:"itil",f:"Analista de deployment",b:"Papel assumido pelo aluno: prepara (versão, artefatos, testes, plano de reversão), coordena (janela, comunicação) e acompanha (métricas, decisão de manter ou reverter).",ex:"É quem responde 'a versão 2.4.0 pode seguir?'."},
+{t:"cicd",f:"DevOps",b:"Esforço colaborativo e multidisciplinar para automatizar a entrega contínua de software com correção e confiabilidade (Leite et al., 2019). Depende de cultura, não só de ferramenta.",ex:"Desenvolvimento e operações trabalhando juntos num mesmo pipeline."},
+{t:"cicd",f:"Integração contínua (CI)",b:"Juntar o código de todos com frequência e rodar build e testes automáticos.",ex:"A cada push, o GitHub Actions compila e roda os testes."},
+{t:"cicd",f:"Entrega contínua",b:"A versão está sempre pronta para produção, mas uma pessoa decide quando implantar. O pipeline da ferramenta funciona parecido: para e espera a decisão do aluno.",ex:"Botão 'promover para produção' que o analista aperta."},
+{t:"cicd",f:"Implantação contínua",b:"O que passa em todas as verificações vai sozinho para produção, sem decisão humana.",ex:"Passou nos testes, em 10 minutos está no ar."},
+{t:"cicd",f:"Pipeline",b:"Sequência automatizada de etapas que a versão percorre: integração, build, testes, homologação, produção.",ex:"Como uma linha de montagem com inspeção em cada estação."},
+{t:"cicd",f:"Build (construção)",b:"Etapa que transforma o código em algo executável e gera o artefato.",ex:"Se falta uma dependência, a build falha e não há artefato."},
+{t:"cicd",f:"Artefato",b:"Arquivo gerado na build (pacote, imagem de contêiner) que é promovido entre ambientes.",ex:"A imagem Docker deploylab:2.4.0."},
+{t:"cicd",f:"Homologação",b:"Ambiente de teste parecido com produção, onde se valida a versão antes dos usuários reais.",ex:"Ensaio geral antes da estreia."},
+{t:"cicd",f:"Changelog",b:"Lista do que mudou numa versão.",ex:"'2.4.0: lembrete por SMS; correção de fuso horário.'"},
+{t:"cicd",f:"Blue-green",b:"Dois ambientes de produção iguais; troca-se o tráfego para o que tem a versão nova. Volta rápido se der errado.",ex:"Azul atende; verde recebe a 2.4.0; troca; problema? volta para o azul."},
+{t:"cicd",f:"Canário",b:"Libera a versão nova para uma pequena parte dos usuários primeiro e observa as métricas.",ex:"5% dos usuários do app de transporte recebem a versão nova."},
+{t:"cicd",f:"Docker / contêiner",b:"Empacota a aplicação com tudo o que precisa para rodar igual em qualquer lugar (RNF12).",ex:"A mesma imagem roda no seu PC, na homologação e na produção."},
+{t:"cicd",f:"GitHub Actions",b:"Serviço de CI/CD do GitHub. Vai entregar a própria ferramenta (RNF13).",ex:"Build, testes, imagem Docker, homologação, aprovação, produção."},
+{t:"ensino",f:"Feedback em três partes",b:"Resultado (o que aconteceu), critério (a regra ou evidência que importava) e próximo passo (o que olhar antes de tentar de novo). Base: Hattie e Timperley (2007).",ex:"'A versão foi registrada como não autorizada. A RFC estava pendente e mudança normal exige autorização. Confira o tipo de mudança e a RFC.'"},
+{t:"ensino",f:"Gamificação",b:"Elementos de jogo (pontos, níveis, conquistas, rankings) em atividades que não são um jogo completo (Zainuddin et al., 2020).",ex:"+10 decisão, +5 justificativa, +2 impacto, −2 dica."},
+{t:"ensino",f:"Simulação educacional",b:"Representa situações em que o aluno aplica conhecimento sem os riscos do ambiente real (Chernikova et al., 2020).",ex:"Errar e derrubar a 'produção' do DeployLab não afeta ninguém."},
+{t:"objetivos",f:"ADDIE",b:"Análise, Design, Desenvolvimento, Implementação, Avaliação. Roteiro para criar material educacional (Lu e Sides, 2022). TCC II = Análise e Design.",ex:"Análise: quem é o aluno. Design: trilha de 4 módulos e atividades."},
+{t:"objetivos",f:"Iterativo e incremental",b:"Construir o software em partes que funcionam, por prioridade, testando a cada entrega.",ex:"Primeiro o pipeline com feedback; depois rankings e conquistas."},
+{t:"avaliacao",f:"GQM",b:"Goal Question Metric (Basili, Caldiera e Rombach, 1994): um objetivo vira perguntas, cada pergunta é respondida por métricas com metas.",ex:"G1 → Q1 'aprenderam mais?' → M2 ganho normalizado ≥ 0,3."},
+{t:"avaliacao",f:"Ganho normalizado (Hake)",b:"(pós − pré) ÷ (100 − pré). Quanto da melhora possível foi alcançada. Baixo < 0,3; médio 0,3–0,7; alto ≥ 0,7.",ex:"40% → 70%: 30 ÷ 60 = 0,5."},
+{t:"avaliacao",f:"Teste de Wilcoxon",b:"Teste estatístico para amostras pareadas pequenas que não precisam seguir distribuição normal. Usado em M1 e M8 (p < 0,05).",ex:"Compara a nota de cada aluno antes e depois."},
+{t:"avaliacao",f:"Correlação de Spearman",b:"Mede se duas variáveis sobem juntas, usando postos; não exige normalidade. Usada em M11.",ex:"Quem mais aumentou a autoavaliação também mais aumentou a nota?"},
+{t:"avaliacao",f:"SUS",b:"System Usability Scale (Brooke, 1996): 10 afirmações de 1 a 5, resultado de 0 a 100. Meta do TCC: média acima de 70.",ex:"Ímpares: resposta − 1. Pares: 5 − resposta. Soma × 2,5."},
+{t:"avaliacao",f:"MEEGA+",b:"Modelo para avaliar jogos educacionais (Petri, Gresse von Wangenheim e Borgatto, 2017). O TCC adapta as afirmações de aprendizagem percebida.",ex:"'O feedback explicou o motivo dos meus erros.'"},
+{t:"avaliacao",f:"Aprendizagem medida × percebida",b:"Medida = nota no teste e decisões registradas. Percebida = o que o aluno acha que aprendeu. Podem não bater (Sitzmann et al., 2010).",ex:"Autoavaliação 2 → 5, nota do teste igual."},
+{t:"avaliacao",f:"Efeito de testagem",b:"Melhorar no pós-teste só por já conhecer as questões. Reduzido sem feedback no pré e com outra ordem no pós (Pan e Carpenter, 2023; Polack e Miller, 2022).",ex:"O aluno lembra a questão 7 do pré-teste."},
+{t:"avaliacao",f:"Grupo de controle",b:"Grupo que não usa a ferramenta, para comparar. O TCC NÃO tem: é grupo único com pré e pós.",ex:"Sem ele, a nota pode ter subido por outra aula, não pela ferramenta."},
+{t:"sistema",f:"Requisito funcional × não funcional",b:"Funcional: o que o sistema faz. Não funcional: como deve ser (qualidade, restrições).",ex:"RF11 feedback em 3 partes × RNF07 aguentar 40 usuários."},
+{t:"sistema",f:"Regra de negócio",b:"Política que o sistema aplica independentemente da tela.",ex:"RN01: 60% na melhor tentativa libera o próximo módulo."},
+{t:"sistema",f:"Caso de uso (include × extend)",b:"Include: sempre acontece junto. Extend: só em certas condições.",ex:"Decidir (UC07) inclui justificar (UC08). Pedir dica (UC15) estende a atividade (UC05)."},
+{t:"sistema",f:"API REST",b:"Interface do servidor que recebe pedidos HTTP em JSON. Faz login, turmas, correção, pontos e relatórios.",ex:"POST /tentativas/123/decisoes com a ação e a justificativa."},
+{t:"sistema",f:"SPA",b:"Single Page Application: a tela é baixada uma vez pelo navegador e atualiza sem recarregar.",ex:"O pipeline anima sem a página piscar."},
+{t:"sistema",f:"JSONB",b:"Tipo do PostgreSQL que guarda JSON em formato binário e permite consultas sobre o conteúdo. Guarda os cenários.",ex:"Atividade.definicao_json e Tentativa.variacao_json."},
+{t:"sistema",f:"JWT e bcrypt",b:"JWT: token de sessão sem estado no servidor. bcrypt: função de hash para guardar senhas (RNF06).",ex:"A senha nunca é guardada como texto."},
+{t:"sistema",f:"Pseudonimização",b:"Trocar a identidade por um código nos dados exportados (RNF06, LGPD).",ex:"CSV mostra P07, não 'Maria Silva'."}
+];
+
+const BANCA = [
+{t:"problema",q:"Em poucas palavras, qual problema o seu trabalho resolve?",a:"O ensino de implantação quase não aparece na graduação: mais de 75% das ementas ignoram o tema (Pang, Hindle e Barbosa, 2020). Os motivos são o custo de montar laboratórios, a complexidade das ferramentas reais, que faz o aluno gastar a aula configurando em vez de decidir, e a separação entre cursos de DevOps (automação) e de ITIL (governança). Eu proponho uma ferramenta web com simulações em que o aluno decide, como analista de deployment, se uma versão pode avançar, sem precisar de servidor.",k:["mais de 75% das ementas (Pang et al., 2020)","custo de infraestrutura","ferramentas complexas desviam o foco","DevOps e ITIL ensinados separados","simulação no navegador, foco na decisão"],r:"Introdução · Slide 4"},
+{t:"problema",q:"Por que não usar um pipeline real, como GitHub Actions, em vez de simular?",a:"Porque o objetivo é introdutório e o foco é a decisão, não a configuração. A literatura mostra que, com ferramentas reais, o aluno gasta o tempo resolvendo rede e scripts (Sarmiento-Calisaya et al., 2024; Jennings e Gannod, 2019) e que montar infraestrutura é caro para a universidade (Pang et al., 2020). A simulação permite controlar os cenários: por exemplo, colocar uma versão com todos os testes verdes mas sem autorização, que é difícil de reproduzir sob demanda num pipeline real. Eu reconheço a limitação: a ferramenta não substitui a prática com infraestrutura real; ela prepara o aluno para ela.",k:["foco na decisão, não na configuração","custo e complexidade (Pang; Sarmiento-Calisaya)","cenários controlados e repetíveis","admite que não substitui infraestrutura real"],r:"Seção 1.1.2, 2.2.3 e 5"},
+{t:"problema",q:"Qual é a contribuição original do trabalho?",a:"Unir num mesmo ambiente simulado a automação do CI/CD e a governança de mudanças do ITIL. Os cinco trabalhos de DevOps analisados usam CI/CD real e não tratam ITIL; o de Veldyaeva, Fitz e Scheeg (2024) usa simulação para ITIL, mas sem CI/CD e sem foco em implantação. Na minha ferramenta o aluno decide combinando evidência técnica do pipeline (testes) com regras de habilitação de mudanças (autorização, comitê, calendário, revisão pós-implementação).",k:["interseção CI/CD + ITIL","5 trabalhos DevOps sem ITIL","Veldyaeva: ITIL sem CI/CD","decisão = evidência técnica + autorização"],r:"Seção 3.8 · Slide 10 e 24"},
+{t:"objetivos",q:"Por que você escolheu o ITIL 4 e não outro framework, como COBIT?",a:"O ITIL é a referência mais usada pelo mercado para gerenciamento de serviços de TI (AXELOS, 2019) e tem práticas específicas para implantação, liberação e habilitação de mudanças, que são exatamente o conteúdo da ferramenta. O ITIL 4 também incorporou princípios ágeis e Lean, o que o aproxima do DevOps (Galup, Dattero e Quan, 2020). O COBIT é mais voltado à governança corporativa e auditoria, num nível mais alto do que a decisão do dia a dia de promover uma versão.",k:["referência de mercado (AXELOS, 2019)","práticas específicas de implantação e mudanças","ITIL 4 próximo do ágil/DevOps (Galup et al., 2020)","COBIT é mais de governança corporativa"],r:"Seção 2.1.1 e 2.1.3",dica:"COBIT não está no texto; se citar, deixe claro que é uma comparação sua, sem fonte no TCC."},
+{t:"objetivos",q:"Explique a metodologia: ADDIE, iterativo e incremental e GQM. Por que três coisas?",a:"Cada uma cuida de uma parte. O ADDIE planeja o lado educacional (Análise do público, Design das atividades, Desenvolvimento, Implementação com os alunos e Avaliação); no TCC II fiz Análise e Design. O processo iterativo e incremental organiza a construção do software em partes funcionais por prioridade. E o GQM estrutura a avaliação: um objetivo, seis perguntas e treze métricas com metas, para não ficar numa avaliação vaga do tipo 'os alunos gostaram'.",k:["ADDIE = planejamento educacional","TCC II = Análise e Design","iterativo e incremental = software","GQM = avaliação com metas"],r:"Seção 1.3 · Slide 7"},
+{t:"projeto",q:"Como você garante que o aluno não está só decorando a regra 'testes ok + autorização ok = avança'?",a:"Por três mecanismos. Primeiro, mudanças padrão: são pré-autorizadas, então seguir sem autorização específica é o correto, e o aluno precisa reconhecer o tipo da mudança. Segundo, distratores: avisos sem importância no meio das evidências, como um alerta de CPU que não afeta o serviço. Terceiro, variações sorteadas a cada tentativa, cada uma com sua decisão esperada. Além disso, a justificativa separa quem acertou entendendo de quem acertou no chute, e só a primeira tentativa vale nota.",k:["mudança padrão","distratores","variações sorteadas (RF31/RN11)","justificativa separa chute de entendimento","só a 1ª tentativa vale nota"],r:"Seção 4.2.3 e 4.2.4 · Slide 13"},
+{t:"projeto",q:"Por que só a primeira tentativa conta para a nota, se o aluno pode aprender com o erro?",a:"Porque depois do feedback, acertar pode ser só lembrar a opção, e não resolver o problema (seção 2.2.1). Mas o aprendizado com o erro continua valendo: todas as tentativas são registradas, a melhor conta para liberar o próximo módulo (60%) e existe a conquista 'Aprendeu com o erro'. Assim a repetição ajuda a aprender sem inflar a nota e o ranking.",k:["acerto na 2ª pode ser memória","todas as tentativas registradas","melhor tentativa libera módulo (RN01)","conquista 'Aprendeu com o erro'"],r:"Seção 4.2.5 · RN01 e RN03"},
+{t:"projeto",q:"A gamificação não pode atrapalhar, com alunos competindo e clicando rápido?",a:"Esse risco foi considerado. A pontuação premia a qualidade da decisão e da justificativa, não a velocidade; o tempo é registrado só para a avaliação (RN07). Os rankings mostram apenas o apelido, para reduzir exposição e competição excessiva, e o ranking da turma só aparece se o professor ativar. A literatura mostra efeitos positivos, mas variáveis conforme o contexto (Sailer e Homner, 2020; Zainuddin et al., 2020), por isso o efeito será observado na avaliação, não presumido.",k:["pontua qualidade, não rapidez (RN07)","apelido nos rankings (RN04)","ranking da turma opcional","efeitos variam (Sailer e Homner)","gamificação depois dos feedbacks no cronograma"],r:"Seção 2.2.2 e 4.2.5 · Slide 14"},
+{t:"projeto",q:"Como o feedback ajuda o aluno a aprender? Dê um exemplo.",a:"O feedback tem três partes, com base em Hattie e Timperley (2007) e Wisniewski, Zierer e Hattie (2020): resultado, critério e próximo passo. Exemplo: o aluno avançou uma versão sem autorização. Resultado: a mudança foi registrada como não autorizada. Critério: os testes passaram, mas a RFC estava pendente, e mudança normal exige autorização. Próximo passo: antes de decidir, confira o tipo de mudança e a situação da RFC. Cada alternativa errada de justificativa tem sua própria mensagem, porque representa um erro conceitual comum.",k:["resultado, critério, próximo passo","base: Hattie e Timperley; Wisniewski et al.","exemplo da RFC pendente","feedback por alternativa de justificativa"],r:"Seção 4.2.4 · Quadro 7 · Slide 14"},
+{t:"projeto",q:"Por que a trilha tem essa ordem de módulos?",a:"Do mais simples ao mais complexo, seguindo Zarour, Akour e Alenezi (2024), que recomendam mostrar o fluxo inteiro antes de detalhar cada etapa. A prática se concentra na implantação porque Sarmiento-Calisaya et al. (2024) mostraram que é a etapa mais difícil para os alunos. Módulo 1: conceitos básicos (implantar x liberar). Módulo 2: pipeline. Módulo 3: decisão de promoção com comitê e calendário, o centro do trabalho. Módulo 4: estratégias, métricas, reversão e revisão.",k:["simples → complexo","fluxo completo primeiro (Zarour et al.)","implantação é a parte mais difícil (Sarmiento-Calisaya)","módulo 3 é o centro"],r:"Seção 4.2.2 · Slide 12"},
+{t:"projeto",q:"Por que 60% para liberar o próximo módulo?",a:"É um mínimo individual que garante que o aluno domina o básico antes de avançar, sem travar quem está aprendendo. Ele vale para a melhor tentativa, então o aluno pode usar o feedback e tentar de novo. A meta da turma na avaliação (M4) é mais alta, 70%, porque o desempenho do grupo deve superar o mínimo individual. Os valores das metas definidas no próprio trabalho serão revistos após a aplicação piloto.",k:["mínimo individual, melhor tentativa","não travar o aprendizado","meta da turma 70% > 60% individual","revisão após o piloto"],r:"RN01 · Seção 4.7.1",dica:"O TCC não cita fonte para os 60%. Se a banca insistir, assuma que é uma decisão de projeto calibrável no piloto."},
+{t:"sistema",q:"Por que a correção fica no servidor e não no navegador?",a:"Para proteger a resposta esperada: se a correção ficasse no código da página, o aluno poderia abrir as ferramentas do navegador e ver qual é a decisão certa. Também concentra num só lugar a geração dos dados usados na avaliação (decisões, justificativas, tempo, uso de dica). O front-end só anima o resultado devolvido pela API.",k:["resposta não fica visível no navegador","dados da avaliação gerados num lugar só","front-end só anima"],r:"Seção 4.5.2 · Slide 11"},
+{t:"sistema",q:"Como um professor ou você adicionaria um cenário novo?",a:"Escrevendo um arquivo JSON com os elementos do Quadro 5: versão, etapas, evidências, regras, pontos de controle, decisões e consequências, contexto organizacional (RFC, personagens, calendário) e variações. O arquivo é validado pelo Zod e carregado no PostgreSQL em colunas JSONB por um script de carga (seed). O motor de simulação interpreta esses dados, então não é preciso mudar o código (RNF03).",k:["arquivo JSON (RNF03)","elementos do Quadro 5","validação com Zod","JSONB no PostgreSQL via seed","motor lê os dados, sem mudar código"],r:"Seção 4.2.3 e 4.6 · Slide 11"},
+{t:"sistema",q:"Por que essas tecnologias (React, NestJS, PostgreSQL)?",a:"O critério principal foi usar TypeScript nas duas pontas, o que reduz o número de tecnologias que eu preciso aprender e permite compartilhar tipos entre a tela e a API. React é muito adotado para interfaces interativas, com React Flow para desenhar o pipeline. NestJS organiza o servidor em módulos iguais aos componentes da arquitetura. PostgreSQL é relacional e tem JSONB para os cenários. Também pesaram documentação e comunidade ativa.",k:["TypeScript nas duas pontas","menos coisa para aprender","NestJS = módulos da arquitetura","PostgreSQL + JSONB","documentação e comunidade"],r:"Seção 4.6 · Quadro 17 · Slide 21"},
+{t:"sistema",q:"O sistema aguenta uma turma inteira usando ao mesmo tempo?",a:"O RNF07 exige cerca de 40 usuários simultâneos. O risco existe porque planos gratuitos do Render ou Railway limitam conexões ao banco e hibernam serviços. Por isso está previsto um teste de carga com esse número de usuários antes da aplicação piloto, e o plano de contingência do Quadro 2 inclui manter uma cópia funcional e os instrumentos de coleta separados do sistema.",k:["RNF07: ~40 usuários","limites e hibernação do plano gratuito","teste de carga antes do piloto","contingência no Quadro 2"],r:"Seção 4.6 · Quadro 2"},
+{t:"sistema",q:"Como vocês tratam a privacidade dos dados dos alunos?",a:"Senhas com hash (bcrypt) e dados exportados pseudonimizados (RNF06): o CSV usa código de participante, não o nome. O nome real só o professor da turma vê; rankings mostram apelido (RN04). Há termo de consentimento no primeiro acesso (RF03), acesso restrito ao professor e ao pesquisador e exclusão dos dados identificáveis ao fim da pesquisa, em linha com a LGPD. A pesquisa também depende de aprovação no Comitê de Ética, que está nos riscos.",k:["hash de senha e pseudonimização (RNF06)","apelido nos rankings (RN04)","termo de consentimento (RF03)","LGPD e exclusão ao final","Comitê de Ética"],r:"Quadro 2 · RNF06 · RF03"},
+{t:"avaliacao",q:"Como você vai saber se a ferramenta realmente ajudou os alunos a aprender?",a:"Com o GQM: um objetivo e seis perguntas. Q1 mede se aprenderam mais, com pré e pós-teste, teste de Wilcoxon e ganho normalizado com meta de 0,3. Q2 vê se decidem certo pelo motivo certo, nos registros da ferramenta. Q3 vê se reconhecem o impacto das mudanças. Q4 mede o que eles acham que aprenderam, e Q5 compara essa percepção com a nota, porque o aluno pode achar que aprendeu sem ter aprendido. Q6 verifica se a interface atrapalha, com o SUS acima de 70.",k:["GQM: G1, Q1–Q6, M1–M13","pré/pós + Wilcoxon + ganho ≥ 0,3","decisão + justificativa nos registros","percebida x medida (Q4/Q5)","SUS > 70"],r:"Seção 4.7 · Slide 22"},
+{t:"avaliacao",q:"Sem grupo de controle, como você pode afirmar que a melhora foi por causa da ferramenta?",a:"Não posso afirmar isso com certeza, e o trabalho assume essa limitação. O delineamento é de grupo único com pré e pós-teste, adequado para uma primeira avaliação em sala, mas a variação pode ter outras causas, como o efeito de testagem. Para reduzir isso: o pré-teste não tem feedback, o pós-teste muda a ordem das questões, as questões usam sistemas diferentes dos cenários e combino várias evidências (teste, decisões registradas com justificativa, autoavaliação e observação). As conclusões ficam limitadas ao contexto da aplicação.",k:["admitir a limitação","grupo único é adequado para avaliação inicial","efeito de testagem e como reduz","triangulação de evidências","conclusões restritas ao contexto"],r:"Seção 4.7.2 e 5 · Slide 23 e 24"},
+{t:"avaliacao",q:"Por que Wilcoxon e não o teste t?",a:"Porque a amostra é pequena (uma turma) e pareada (o mesmo aluno antes e depois), e as notas podem não seguir uma distribuição normal, que o teste t pressupõe. O Wilcoxon de postos sinalizados não exige normalidade (Wilcoxon, 1945). Pela mesma razão, para a correlação uso Spearman e não Pearson.",k:["amostra pequena e pareada","sem pressupor normalidade","Spearman pelo mesmo motivo","p < 0,05"],r:"Seção 4.7.4"},
+{t:"avaliacao",q:"O que é o ganho normalizado e por que usar em vez da diferença simples?",a:"É (pós − pré) dividido por (100 − pré), ou seja, quanto da melhora possível o aluno conseguiu (Hake, 1998). A diferença simples penaliza quem já começou alto: subir de 80 para 90 é metade do que faltava, enquanto subir de 20 para 30 é só 1/8. Exemplo do TCC: 40% para 70% dá 30 ÷ 60 = 0,5. Calculo com as médias da turma para evitar divisão por zero se alguém tirar 100 no pré. A meta é 0,3, início da faixa de ganho médio.",k:["fórmula (pós − pré)/(100 − pré)","considera o quanto faltava","exemplo 40→70 = 0,5","média da turma evita divisão por zero","meta 0,3 (faixa média)"],r:"Seção 4.7.4"},
+{t:"avaliacao",q:"Por que medir a aprendizagem percebida se você já tem o teste?",a:"Porque as duas podem não coincidir. Sitzmann et al. (2010) mostraram que a autoavaliação se relaciona mais com satisfação e motivação do que com o que o teste mede. Um aluno pode gostar da ferramenta, se dar nota 5 depois de se dar 2 antes, e não melhorar no teste. Comparar as duas (Q5, com Spearman) mostra se a opinião dos alunos é um indício confiável e evita concluir que a ferramenta ensina só porque os alunos gostaram.",k:["percebida ≠ medida","Sitzmann et al. (2010)","exemplo 2 → 5 sem mudar a nota","Q5 com Spearman","satisfação não é prova de aprendizagem"],r:"Seção 4.7.1 · Slide 22"},
+{t:"avaliacao",q:"E se poucos alunos participarem?",a:"Está nos riscos (Quadro 2): menos de 10 alunos tornam os testes estatísticos fracos. A contingência é aplicar em mais de uma turma e, se ainda assim for pouco, apresentar os resultados de forma descritiva, sem generalizar. Também há o risco de alunos faltarem ao segundo encontro; por isso prefiro um encontro só, e quem faltar entra nas análises descritivas mas não na comparação pareada.",k:["risco: < 10 alunos","mais de uma turma","resultados descritivos, sem generalizar","faltas: fora da comparação pareada"],r:"Quadro 2 · Seção 4.7.2"},
+{t:"avaliacao",q:"Como funciona o cálculo do SUS?",a:"São 10 afirmações de 1 a 5, alternando positivas (ímpares) e negativas (pares). Nas ímpares, subtrai 1 da resposta; nas pares, faz 5 menos a resposta. Cada uma vale de 0 a 4; a soma (0 a 40) vezes 2,5 dá 0 a 100 (Brooke, 1996). Exemplo: 4 em todas as ímpares e 2 em todas as pares dá 3 por item, soma 30, pontuação 75. A meta é média acima de 70 (Bangor, Kortum e Miller, 2008).",k:["10 itens, 1 a 5","ímpares: r−1; pares: 5−r","soma × 2,5","exemplo = 75","meta > 70"],r:"Seção 4.7.3.3"},
+{t:"trabalhos",q:"Como foi feita a busca dos trabalhos relacionados? Ela é sistemática?",a:"Usei cinco strings de busca no Google Scholar e no Consensus, e adotei o Consensus porque o Scholar trazia muitos resultados de outras áreas, como deploy de modelos de ML. Olhei os 20 primeiros de cada busca (100 registros), pré-selecionei 10 por título e resumo e, após leitura completa com critérios de inclusão, exclusão e qualidade (QA1 a QA4), ficaram 5. Somei o de Veldyaeva, Fitz e Scheeg (2024), achado na fundamentação. Foi um mapeamento orientado por cinco perguntas de pesquisa (Kitchenham e Charters, 2007), mas com uma ferramenta de busca semântica e número limitado de resultados, então é uma busca exploratória, não uma revisão sistemática completa.",k:["5 strings, Scholar + Consensus","20 por busca = 100","10 pré → 5 + Veldyaeva = 6","critérios e QA1–QA4","admitir: busca exploratória com limites"],r:"Seção 3 e 3.1 · Slide 10"},
+{t:"trabalhos",q:"O que você aproveitou de cada trabalho relacionado?",a:"Sarmiento-Calisaya et al. (2024): simular papéis de equipe, pipeline em etapas e o dado de que a implantação é a etapa mais difícil. Zarour et al. (2024): mostrar o fluxo completo antes de detalhar. Bobrov et al. (2020): problemas concretos, viram cenários realistas. Alves e Rocha (2021): um responsável pelas liberações e a comunicação, que viram o papel de analista que justifica decisões. Pang et al. (2020): recomendar simulações antes das ferramentas complexas. Veldyaeva et al. (2024): simulação para praticar decisões de serviço sem risco.",k:["Sarmiento-Calisaya: implantação é o gargalo","Zarour: fluxo completo primeiro","Bobrov: problemas concretos","Alves e Rocha: responsável + comunicação","Pang: simular antes","Veldyaeva: simulação ITIL"],r:"Seção 3.8"},
+{t:"fechamento",q:"Quais são as limitações do trabalho?",a:"Três principais. A ferramenta é introdutória e simulada, então não substitui configurar e operar uma infraestrutura real. Os cenários simplificam a complexidade das organizações reais. E a avaliação é de grupo único, sem grupo de controle, então não dá para atribuir toda a melhora só à ferramenta. Também há limitações práticas: amostra pequena de uma turma e possível efeito de testagem.",k:["introdutória, não substitui infraestrutura real","cenários simplificados","sem grupo de controle","amostra pequena / efeito de testagem"],r:"Seção 5 · Slide 24"},
+{t:"fechamento",q:"O cronograma do TCC III é viável? O que você corta se atrasar?",a:"O cronograma vai de março a junho de 2027 e foi montado com prioridade nos requisitos essenciais. Se atrasar mais de uma semana em relação ao Quadro 26, o plano de contingência é priorizar conteúdo, simulação e feedback e adiar os desejáveis: escolher a estratégia de implantação (RF19), a narrativa (RF24) e o resumo das evidências não usadas (RF25). A avaliação continua possível porque os dados que ela usa vêm dos requisitos essenciais (registro das tentativas, exportação CSV).",k:["Mar–Jun/2027 (Quadro 26)","gatilho: atraso > 1 semana","prioriza conteúdo, simulação, feedback","adia os D (RF19, RF24, RF25)","avaliação depende só dos E"],r:"Quadro 2 e 26 · Slide 25"},
+{t:"sistema",q:"Você tem pouca experiência com essas tecnologias. Como vai dar conta da implementação?",a:"Isso pesou nas escolhas: TypeScript nas duas pontas reduz o que preciso aprender, e as ferramentas foram escolhidas por terem boa documentação e comunidade. O desenvolvimento é iterativo e incremental, começando pelo fluxo essencial (uma atividade de pipeline com decisão e feedback) e só depois os extras. O escopo já prevê o corte dos requisitos desejáveis se atrasar, e o projeto detalhado do TCC II (casos de uso, diagramas de sequência, modelo de dados) reduz decisões em aberto na hora de programar.",k:["TypeScript nas duas pontas","documentação e comunidade","começar pelo fluxo essencial","corte dos desejáveis","projeto detalhado reduz incertezas"],r:"Seção 4.6 e 1.3"}
+];
+
+const SLIDE_PONTOS = {
+1:["Nome e tema do TCC","Orientador: Prof. Dr. Rafael Queiroz Gonçalves","TCC II = pesquisa, planejamento e projeto; construção e avaliação no TCC III"],
+2:["Roteiro: contexto, problema, objetivos, solução, metodologia","Teoria e trabalhos similares","Maior parte do tempo no projeto e nas telas","Fechamento: considerações e cronograma"],
+3:["ITIL 4 = boas práticas de serviços de TI","Gerenciamento de implantação: levar versão a teste e produção","CI/CD automatiza o caminho","Exemplo do sistema de matrículas pelas 5 etapas","Decidir bem em cada etapa ficou mais importante"],
+4:["Mais de 75% das ementas ignoram implantação (Pang, Hindle e Barbosa, 2020)","Infraestrutura cara","Ferramentas complexas: aluno configura em vez de decidir","DevOps e ITIL ensinados separados","Pergunta de pesquisa"],
+5:["Objetivo geral: construir e avaliar a contribuição","OE1–OE3 concluídos no TCC II","OE4–OE6 no TCC III"],
+6:["DeployLab, nome provisório, web sem instalar","Aluno = analista de deployment","Pipeline para e o aluno decide: avançar, bloquear, reverter","Consequência + feedback explicando","Painel do professor"],
+7:["Pesquisa aplicada, exploratória e descritiva; dados quanti e quali","ADDIE para o educacional (feitas Análise e Design)","Iterativo e incremental para o software","GQM para a avaliação","8 etapas: 1–4 agora, 5–8 no TCC III"],
+8:["Implantar ≠ liberar (feature toggle)","Mudança padrão, normal e emergencial","RFC","CAB, calendário (janelas e congelamento) e PIR"],
+9:["CI, entrega contínua e implantação contínua","Pipeline da ferramenta para e espera o aluno, como na entrega contínua","Blue-green e canário","Feedback, gamificação e simulação com suas fontes"],
+10:["5 buscas × 20 = 100 registros → 10 → 5 + Veldyaeva = 6","DevOps: CI/CD real, sem ITIL, exige infraestrutura","Veldyaeva: ITIL sem CI/CD","Lacuna: ninguém une os dois em ambiente simulado"],
+11:["Navegador → API → banco","Dois perfis: estudante e professor","Cenários como arquivos de dados (JSON)","Correção no servidor, resposta escondida"],
+12:["Público: computação, sem experiência em implantação","4 módulos do simples ao complexo","Módulo 3 é o centro (comitê + calendário)","60% libera o próximo módulo","Ordem baseada em Zarour e Sarmiento-Calisaya"],
+13:["Ciclo: comitê, pipeline, promoção, calendário, produção, revisão","Exemplo: pagamentos sem plano de reversão","Regra do Quadro 6: só avança com testes E autorização","Anti-decoreba: mudança padrão, distratores, variações"],
+14:["Feedback: resultado, critério, próximo passo (exemplo)","+10, +5, +2, −2","Velocidade não pontua","Só 1ª tentativa vale nota; repetir ajuda a liberar módulo","Rankings por apelido"],
+15:["31 RF, 13 RNF, 14 RN (exemplos de cada)","Prioridade essencial x desejável","19 casos de uso","Outros diagramas: estados, sequência, banco"],
+16:["Áreas 1 a 4 da tela","AgendaFácil 2.4.0, parado antes da homologação","148 testes verdes, mas RFC pendente → bloquear","Estados com ícone e texto (RNF05)"],
+17:["Justificativa com erros comuns como alternativas","Avaliação do impacto","Separar acerto entendendo de acerto no chute","Feedback de decisão errada"],
+18:["Primeiro ponto de controle","RFC à esquerda, personagens no meio, decisão à direita","Gerente pressiona prazo, segurança aponta risco","Pagamentos sem reversão: aprovar só pelo prazo é o erro","Na tela: aprovar com condições (revisão de segurança + plano de reversão)"],
+19:["Agendamento: janelas, pico, congelamento","Versão certa no momento errado também é risco","Métricas em canário: manter ou reverter","Alerta de CPU é distrator"],
+20:["PIR: causa provável + ação preventiva","Incidente x problema","Painel do professor: acertos por ponto de controle, decisão certa com justificativa errada, tempo médio","Exportação CSV sem identificar alunos"],
+21:["React, React Flow, dnd-kit","NestJS em módulos da arquitetura","PostgreSQL com JSON","TypeScript nas duas pontas","A ferramenta será entregue por CI/CD no GitHub Actions"],
+22:["GQM: um objetivo G1","Q1–Q3 aprendizagem medida, com metas","Q4–Q5 percebida x medida (exemplo 2 → 5)","Q6 SUS acima de 70"],
+23:["5 etapas, cerca de 1h50, em 1 ou 2 encontros","Pré-teste, uso ~60 min, pós-teste em outra ordem, questionário","Piloto antes","Limitação: grupo único sem controle"],
+24:["Ferramenta na interseção CI/CD + ITIL","OE1, OE2, OE3 cumpridos + avaliação planejada","3 limitações"],
+25:["Mar a Jun/2027, meses em 4 semanas","Mar: requisitos e ambiente","Mar–Abr: telas e atividades, depois feedbacks e gamificação (essenciais)","Mai: piloto e aplicação","Jun: análise e apresentação"],
+26:["Agradecer","Abrir para perguntas"]
+};
+
+const ATENCAO = [
+{titulo:"Quadro 26 ainda chama a gamificação de desejável",txt:"O slide 25 já foi corrigido para 'Feedbacks e gamificação', porque conquistas e rankings (RF21 a RF23) são essenciais. No texto do TCC, a linha do Quadro 26 ainda diz 'Implementação dos feedbacks (E) e, conforme a folga, da gamificação (D)'. Troque no Word por 'Implementação dos feedbacks e da gamificação'.",onde:"Quadro 26 (seção 5.1)"}
+];
+const SLIDES = [{"n": 1, "titulo": "Ferramenta educacional para o ensino de gerenciamento de implantação baseado em ITIL com adoção de práticas de CI/CD", "notas": "Boa noite. Eu sou o Pedro, e vou apresentar o meu TCC II: uma ferramenta educacional para ensinar gerenciamento de implantação, que é o processo de levar uma versão nova de um sistema até os usuários, seguindo as boas práticas do ITIL e usando as ideias de CI/CD.\nO orientador é o professor Rafael Queiroz Gonçalves.\nNesta etapa (TCC II) eu fiz a pesquisa, o planejamento e o projeto da ferramenta. A construção e a avaliação com alunos ficam para o TCC III."}, {"n": 2, "titulo": "SUMÁRIO", "notas": "Este é o roteiro da apresentação. Primeiro o contexto e o problema, depois os objetivos e a solução que eu proponho, a metodologia, a teoria e os trabalhos parecidos. A maior parte do tempo vai para o projeto da ferramenta, com as telas. No fim, as considerações e o cronograma do TCC III."}, {"n": 3, "titulo": "Contextualização", "notas": "Para entender o tema, três ideias.\nO ITIL é um guia de boas práticas para quem cuida de serviços de TI. Uma dessas práticas é o gerenciamento de implantação: levar uma versão nova de um sistema para o ambiente de testes e depois para produção, sem derrubar o serviço.\nO CI/CD é a automação desse caminho. Exemplo: o sistema de matrículas da universidade ganha uma correção. O código é integrado, o sistema é construído (build), os testes rodam sozinhos, a versão vai para homologação, que é um ambiente de teste parecido com o real, e por fim para produção, onde os alunos usam.\nComo isso acontece muitas vezes por semana, decidir bem em cada etapa ficou mais importante."}, {"n": 4, "titulo": "Problema", "notas": "O problema é que esse assunto quase não aparece na graduação. Um estudo de Pang, Hindle e Barbosa mostrou que mais de 75% das ementas universitárias ignoram a implantação.\nOs motivos: montar um laboratório com servidores de verdade é caro e dá trabalho. Quando a universidade tenta usar ferramentas da indústria, como Jenkins e Docker, o aluno passa a aula inteira resolvendo problema de configuração e não aprende a parte mais importante, que é decidir se uma versão pode ou não ir para produção.\nE tem um terceiro ponto: quem ensina DevOps foca só na automação, e quem ensina ITIL foca só nas regras e aprovações. Na vida real as duas coisas andam juntas.\nDaí vem a pergunta de pesquisa: como uma ferramenta com simulações pode ajudar a ensinar isso?"}, {"n": 5, "titulo": "Objetivos", "notas": "O objetivo geral tem duas partes: construir a ferramenta e verificar se ela realmente ajuda o aluno a aprender.\nEle se divide em seis objetivos específicos. Os três primeiros, que são escolher o conteúdo, planejar as atividades e projetar a ferramenta, foram cumpridos agora no TCC II. Os outros três, que são programar, aplicar numa turma e avaliar, ficam para o TCC III."}, {"n": 6, "titulo": "Solução proposta", "notas": "A solução é uma ferramenta web, com nome provisório DeployLab. O aluno entra pelo navegador, então não precisa instalar nada nem configurar servidor.\nDentro dela, o aluno trabalha como um analista de deployment, que é a pessoa que decide se uma versão pode ir para produção. Na tela ao lado, por exemplo, o pipeline parou antes da homologação e pergunta: a versão 2.4.0 pode seguir? O aluno olha as evidências, como os testes e o registro da mudança, e escolhe avançar ou bloquear.\nDepois ele vê o que aconteceu por causa da escolha e recebe uma explicação. O professor tem um painel para acompanhar a turma."}, {"n": 7, "titulo": "Metodologia", "notas": "A pesquisa é aplicada, porque resolve um problema prático. Ela junta números, como notas e acertos, com opiniões e justificativas dos alunos.\nUsei quatro referências de método. O ADDIE é um roteiro para criar material de ensino: analisar o público, desenhar as atividades, desenvolver, aplicar e avaliar. Neste TCC fiz as duas primeiras fases.\nO software vai ser construído aos poucos, em partes que já funcionam, testando a cada entrega.\nE a avaliação usa o GQM: em vez de perguntar \"a ferramenta é boa?\", eu defino um objetivo, perguntas concretas e números para responder cada pergunta.\nO plano tem 8 etapas: as 4 primeiras foram feitas agora, as outras 4 no TCC III."}, {"n": 8, "titulo": "Fundamentação: ITIL 4", "notas": "Três conceitos do ITIL sustentam a ferramenta.\nPrimeiro, implantar não é o mesmo que liberar. Implantar é instalar a versão. Liberar é deixar o usuário usar. Exemplo: a funcionalidade nova pode estar instalada mas escondida por uma chave, o feature toggle, até o dia do lançamento.\nSegundo, a habilitação de mudanças. Toda mudança é registrada num pedido, a RFC. Uma troca de texto na tela é uma mudança padrão, já aprovada. Uma alteração no módulo de pagamentos é normal e precisa de avaliação. Uma correção de segurança urgente é emergencial.\nTerceiro, os controles: o comitê de mudanças, o CAB, que aprova ou rejeita; o calendário, que diz quando pode implantar e quando está congelado, por exemplo na semana de matrícula; e a revisão pós-implementação, que investiga o que deu errado depois de uma falha."}, {"n": 9, "titulo": "Fundamentação: CI/CD e ensino", "notas": "Agora o lado do CI/CD. Integração contínua é juntar o código de todos várias vezes por dia e testar automaticamente. Na entrega contínua a versão fica sempre pronta, mas uma pessoa aperta o botão para ir para produção. Na implantação contínua nem isso: passou nos testes, vai direto. Na ferramenta, o pipeline para nos pontos de controle e espera a decisão do aluno, parecido com o que acontece na entrega contínua.\nDuas estratégias aparecem nos cenários: blue-green, em que existem dois ambientes iguais e você só troca qual deles recebe os usuários; e canário, em que a versão nova vai primeiro para uma parte pequena dos usuários, como um teste.\nDo lado do ensino, três recursos: feedback que explica o critério, gamificação que premia a decisão bem pensada e não a pressa, e simulação para errar sem consequência real."}, {"n": 10, "titulo": "Trabalhos similares", "notas": "Para achar trabalhos parecidos, fiz cinco buscas e olhei os 20 primeiros resultados de cada uma, 100 no total. Dez pareciam ter a ver, e depois da leitura completa ficaram cinco. Somei um sexto, o de Veldyaeva, que encontrei durante a fundamentação e é o único que usa simulação para ensinar ITIL.\nA tabela mostra o padrão: os cinco trabalhos de DevOps usam CI/CD de verdade, mas o aluno precisa configurar a infraestrutura e nenhum fala de ITIL. O jogo de Veldyaeva fala de ITIL e não precisa de infraestrutura, mas não trata de CI/CD nem de implantação.\nEssa é a lacuna: ninguém junta as duas coisas num ambiente simulado. É aí que este trabalho entra."}, {"n": 11, "titulo": "Projeto: visão geral do sistema", "notas": "Esta é a visão geral. O aluno e o professor usam o navegador. A tela conversa com uma API no servidor, que cuida do login, das turmas, da correção das decisões, dos pontos e dos relatórios, e guarda tudo num banco de dados.\nUm detalhe importante: os cenários são arquivos de dados. É como uma fase de jogo descrita num arquivo: se eu quiser criar um cenário novo, escrevo um arquivo novo e não mexo no programa.\nE a correção acontece no servidor, não no navegador. Assim o aluno não consegue espiar a resposta certa pelo código da página."}, {"n": 12, "titulo": "Projeto educacional: trilha", "notas": "O conteúdo foi organizado numa trilha de quatro módulos, do mais simples ao mais complexo.\nNo primeiro, conceitos básicos, com quiz: por exemplo, saber a diferença entre implantar e liberar.\nNo segundo, o pipeline: colocar as etapas na ordem certa e entender por que um build ou um teste falhou.\nO terceiro é o centro do trabalho: o aluno participa do comitê de mudanças, verifica testes e autorização e escolhe quando implantar.\nNo quarto, a versão já está em produção: o aluno olha as métricas, decide se mantém ou volta a versão anterior, e investiga a causa da falha.\nEssa ordem segue a recomendação de mostrar o fluxo todo primeiro e concentrar a prática na implantação, que é a parte mais difícil para os alunos."}, {"n": 13, "titulo": "Atividades simuladas", "notas": "Cada atividade segue o ciclo de vida de uma mudança. Primeiro o aluno está no comitê e avalia o pedido de mudança. Exemplo: o gerente de produto pede urgência numa mudança no módulo de pagamentos, mas o pedido não tem plano para desfazer a mudança. Aprovar só por causa do prazo seria errado.\nDepois o pipeline roda, e o aluno decide se a versão avança. Depois escolhe o horário no calendário, olha as métricas em produção e, se reverteu, faz a revisão para achar a causa.\nA tabela mostra a regra central: só avança se os testes passaram E a mudança foi autorizada. Exemplo: versão 2.4.0 com todos os testes verdes, mas a RFC ainda pendente: tem que bloquear.\nPara o aluno não decorar a regra, existem exceções como a mudança padrão, avisos que não importam no meio das evidências, e cada tentativa sorteia uma variação diferente do cenário."}, {"n": 14, "titulo": "Feedback e gamificação", "notas": "O feedback tem três partes. Exemplo: o aluno mandou avançar uma versão sem autorização. O resultado diz o que aconteceu: a mudança ficou registrada como não autorizada. O critério explica por quê: os testes passaram, mas faltava a aprovação. E o próximo passo diz onde olhar da próxima vez.\nNa pontuação, a decisão certa vale 10, justificar certo vale mais 5, avaliar certo o impacto da mudança vale mais 2, e pedir dica tira 2. A velocidade não dá ponto, para o aluno não sair clicando sem ler.\nSó a primeira tentativa conta para a nota e o ranking, porque na segunda o aluno já viu a resposta. Ele pode repetir para aprender e liberar o próximo módulo. Os rankings mostram só o apelido, para não expor ninguém."}, {"n": 15, "titulo": "Requisitos e modelagem", "notas": "A partir do projeto educacional saíram os requisitos: 31 funcionais, que dizem o que o sistema faz, como \"mostrar o feedback em três partes\"; 13 não funcionais, que dizem como ele deve ser, como \"rodar no navegador sem instalar\" e \"aguentar uma turma de 40 pessoas ao mesmo tempo\"; e 14 regras de negócio, como a de 60% para liberar o próximo módulo.\nCada requisito tem prioridade: essencial ou desejável. Os desejáveis só entram se sobrar tempo.\nO diagrama mostra os 19 casos de uso, ou seja, tudo o que o estudante e o professor podem fazer. No TCC também estão os diagramas de estados, de sequência e o modelo do banco."}, {"n": 16, "titulo": "Protótipo: atividade de pipeline", "notas": "Esta é a tela principal. Visual inspirado em fliperama, para lembrar um jogo, mas sem exagero.\nNa área 1, o cenário: a versão 2.4.0 do AgendaFácil, com lembrete por SMS e correção de fuso horário. Na área 2, o pipeline: integração, build e testes já passaram, e ele parou antes da homologação. Na área 3, as evidências: aqui os 148 testes passaram. Mas o aluno precisa abrir a aba \"Registro de mudança\" para ver se a mudança foi autorizada. Na área 4, ele decide.\nNeste cenário a RFC está pendente, então a resposta certa é bloquear, mesmo com tudo verde nos testes. É exatamente a armadilha que a gente quer ensinar."}, {"n": 17, "titulo": "Protótipo: justificativa e feedback", "notas": "Depois de escolher, o aluno justifica. As alternativas erradas são erros comuns, como \"os testes passaram, então pode ir para produção\". Ele também diz se o impacto da mudança é baixo, médio ou alto.\nIsso permite separar quem acertou entendendo de quem acertou no chute: decisão certa com justificativa errada é um sinal de que o aluno não entendeu o critério.\nÀ direita está o feedback de uma decisão errada, com as três partes que eu mostrei antes."}, {"n": 18, "titulo": "Protótipo: comitê de mudanças", "notas": "Este é o comitê de mudanças, o primeiro ponto de controle da atividade.\nÀ esquerda está o pedido de mudança. No meio, os personagens: o Gerente de Produto pressiona pelo prazo e o Analista de Segurança aponta riscos. À direita, o aluno diz se a mudança é padrão, normal ou emergencial, se o risco é baixo, médio ou alto, e decide.\nNo exemplo, a mudança mexe em pagamentos e não tem plano de reversão. Aprovar direto porque o prazo aperta seria o erro. Na tela, a escolha marcada é aprovar com condições: exigir revisão de segurança e um plano de reversão."}, {"n": 19, "titulo": "Protótipo: agendamento e métricas", "notas": "À esquerda, o agendamento. A versão já foi aprovada e testada, agora falta escolher quando. O calendário mostra as janelas permitidas, os horários de pico e o período de congelamento. Lição: a versão certa no momento errado também é um risco. Exemplo: implantar na sexta à noite antes da semana de matrícula.\nÀ direita, a versão foi para produção em modo canário, só para uma parte dos usuários. O aluno compara as métricas com os limites. Tem um alerta de CPU que não afeta o serviço, colocado de propósito para ver se o aluno separa o que importa do que não importa."}, {"n": 20, "titulo": "Protótipo: revisão e professor", "notas": "Quando a versão é revertida, vem a revisão pós-implementação. O aluno lê o log de erros e o changelog, aponta a causa e escolhe uma ação para não acontecer de novo, por exemplo criar um teste automatizado. Aqui ele aprende a diferença entre incidente, que a reversão resolve, e problema, que é a causa.\nÀ direita, o painel do professor: código da turma, proporção de acertos em cada ponto de controle, quantos acertaram a decisão com justificativa errada, tempo médio, e o botão para exportar os dados sem identificar os alunos."}, {"n": 21, "titulo": "Tecnologias", "notas": "As tecnologias foram escolhidas para usar TypeScript tanto na tela quanto no servidor, o que reduz o que eu preciso aprender.\nNa tela, React, com o React Flow para desenhar o pipeline e o dnd-kit para arrastar as etapas. No servidor, NestJS, que organiza o código em módulos iguais aos da arquitetura. O banco é PostgreSQL, que guarda os cenários em formato JSON.\nE um detalhe que eu acho legal: a própria ferramenta vai ser publicada por um pipeline de CI/CD no GitHub Actions, com build, testes, homologação, aprovação e produção. Ou seja, eu vou usar no desenvolvimento o mesmo processo que a ferramenta ensina."}, {"n": 22, "titulo": "Projeto da avaliação (GQM)", "notas": "A avaliação foi planejada com o GQM. O objetivo é um só: avaliar se a ferramenta contribui para a aprendizagem.\nEle vira seis perguntas, cada uma com uma meta. Q1: o aluno aprendeu mais? Medido pelo ganho entre o teste antes e depois; a meta é 0,3, que é considerado um ganho médio. Q2: ele decide certo pelo motivo certo? Q3: entende o impacto das mudanças?\nQ4 e Q5 são uma parte importante: um aluno pode achar que aprendeu muito e não ter aprendido. Exemplo: ele se dá nota 2 antes e 5 depois, mas a nota no teste não muda. Por isso eu comparo o que ele sente com o que o teste mede.\nE Q6 verifica se a interface atrapalha, com o questionário SUS, cuja média em ferramentas educacionais fica perto de 70."}, {"n": 23, "titulo": "Aplicação da avaliação", "notas": "A aplicação com a turma tem cinco etapas, somando cerca de 1 hora e 50 minutos. Se os quatro módulos não couberem em um encontro, o uso é dividido em dois, com o pré-teste no começo do primeiro e o pós-teste no fim do segundo. Primeiro explico a pesquisa e o aluno aceita o termo. Depois ele faz o pré-teste sem consultar nada. Usa a ferramenta por cerca de uma hora, faz o mesmo teste com as questões em outra ordem, e responde o questionário de usabilidade.\nAntes disso, vou fazer um piloto com poucos alunos para corrigir problemas.\nUma limitação que eu assumo: é um grupo só, sem grupo de controle. Então, se a nota subir, não dá para dizer com certeza que foi só por causa da ferramenta. Isso vai ser considerado na análise."}, {"n": 24, "titulo": "Considerações finais", "notas": "Resumindo: a ferramenta fica na interseção entre a automação do CI/CD e as regras de mudança do ITIL, que a literatura trata separado.\nOs objetivos OE1, OE2 e OE3 foram cumpridos: o conteúdo foi escolhido, as atividades foram planejadas e a ferramenta foi projetada, com requisitos, diagramas e as 12 telas. A avaliação também já está planejada.\nAs limitações: é uma ferramenta de introdução, não substitui a prática com servidores reais; os cenários simplificam a realidade; e a avaliação não tem grupo de controle."}, {"n": 25, "titulo": "Cronograma do TCC III", "notas": "Este é o cronograma do TCC III, de março a junho de 2027, com cada mês dividido em quatro semanas.\nMarço: revisar os requisitos e preparar o ambiente. Março e abril: construir as telas e as atividades simuladas, e depois os feedbacks e a gamificação, com conquistas e rankings, que também são requisitos essenciais. Abril e maio: integrar e testar.\nEm maio preparo os instrumentos, faço o piloto e começo a aplicação em sala. Em junho analiso os resultados e preparo a apresentação final. A redação acontece o tempo todo."}, {"n": 26, "titulo": "Obrigado!", "notas": "Obrigado pela atenção. Fico à disposição para perguntas."}];
+
+</script>
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const KEY="tcc2-estudo-v1";
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+let S=Object.assign({q:{},c:{},b:{},e:{runs:[],min:20}},load());
+S.q=S.q||{};S.c=S.c||{};S.b=S.b||{};S.e=S.e||{runs:[],min:20};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200)}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmt(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+QUIZ.forEach((q,i)=>q.id="q"+i);CARDS.forEach((c,i)=>c.id="c"+i);BANCA.forEach((b,i)=>b.id="b"+i);
+$("#nQuiz").textContent=QUIZ.length;$("#nCards").textContent=CARDS.length;$("#nBanca").textContent=BANCA.length;
+
+/* capabilities */
+let sample=null,dict=null;
+(async()=>{try{if(window.claude&&claude.use){sample=await claude.use("sample");if(sample){$("#bAsk").hidden=false;$("#eAsk").hidden=false}
+ dict=await claude.use("dictation");if(dict){$("#bMic").hidden=false;$("#eMic").hidden=false;setupDict()}}}catch(e){}})();
+let dictTarget=null,dictBtn=null;
+function setupDict(){
+  dict.onFinal(({text})=>{if(!dictTarget)return;const t=dictTarget;t.value=(t.value&&!/\s$/.test(t.value)?t.value+" ":t.value)+text;t.dispatchEvent(new Event("input"))});
+  dict.onState(({state})=>{const on=state==="listening"||state==="starting";if(dictBtn){dictBtn.setAttribute("aria-pressed",on);dictBtn.textContent=on?"Parar de ditar":(dictBtn.id==="bMic"?"Ditar resposta":"Ditar")}if(!on){dictBtn=null}});
+}
+function micClick(btn,target){if(!dict)return;if(btn.getAttribute("aria-pressed")==="true"){dict.stop().catch(()=>{});return}
+  dictTarget=target;dictBtn=btn;dict.start().catch(e=>{if(e&&e.code==="not_granted"){$("#bMic").hidden=true;$("#eMic").hidden=true}else if(e&&e.code!=="stopped")toast("Não consegui ouvir agora. Pode digitar.")})}
+$("#bMic").onclick=()=>micClick($("#bMic"),$("#bAns"));
+$("#eMic").onclick=()=>micClick($("#eMic"),$("#eSaid"));
+function aiErr(e){const c=e&&e.code;if(c==="not_granted"||c==="sampling_disabled"||c==="not_declared"){$("#bAsk").hidden=true;$("#eAsk").hidden=true;return"A avaliação pelo Claude foi recusada nesta página. Use a resposta-modelo."}
+  if(c==="rate_limited")return"Muitos pedidos seguidos. Espere um pouco e tente de novo.";if(c==="cancelled")return"";return"Não consegui avaliar agora. Tente de novo em instantes."}
+
+/* routing */
+const VIEWS=["painel","quiz","cards","banca","ensaio"];
+function route(){let v=(location.hash||"#painel").slice(1);if(!VIEWS.includes(v))v="painel";
+  VIEWS.forEach(x=>$("#v-"+x).hidden=x!==v);$$("nav.tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===v?"page":"false"));
+  if(v==="painel")renderPainel();if(v==="cards")renderCard();if(v==="banca"&&$("#bStage").hidden)renderBList();if(v==="ensaio")enterEnsaio();else leaveEnsaio();window.scrollTo(0,0)}
+window.addEventListener("hashchange",route);
+
+/* HUD + painel */
+function quizStats(filter){let r=0,w=0,seen=0;QUIZ.forEach(q=>{if(filter&&q.t!==filter)return;const s=S.q[q.id];if(s){seen++;r+=s.r||0;w+=s.w||0}});return{r,w,seen}}
+function mastered(){return CARDS.filter(c=>(S.c[c.id]||{}).box>=2).length}
+function bancaDone(){return BANCA.filter(b=>S.b[b.id]).length}
+function hud(){const st=quizStats();$("#hAcerto").textContent=st.r+st.w?Math.round(100*st.r/(st.r+st.w))+"%":"--";
+  $("#hCards").textContent=mastered()+"/"+CARDS.length;$("#hBanca").textContent=bancaDone()+"/"+BANCA.length;$("#hEnsaios").textContent=S.e.runs.length}
+function renderPainel(){hud();const st=quizStats();$("#mQuiz").innerHTML=st.seen+"<small>de "+QUIZ.length+" vistas</small>";
+  $("#mCards").innerHTML=mastered()+"<small>de "+CARDS.length+"</small>";$("#mBanca").innerHTML=bancaDone()+"<small>de "+BANCA.length+"</small>";
+  const last=S.e.runs[S.e.runs.length-1];$("#mEnsaio").innerHTML=last?fmt(last.total)+"<small>alvo "+last.min+" min</small>":"--<small>nenhum ainda</small>";
+  $("#topicList").innerHTML=Object.entries(TOPICOS).map(([k,n])=>{const s=quizStats(k),tot=QUIZ.filter(q=>q.t===k).length,a=s.r+s.w,p=a?Math.round(100*s.r/a):null;
+    const cls=p==null?"":p<60?"lo":p<80?"mid":"hi";
+    return `<div class="trow"><div class="nm">${esc(n)}<small>${s.seen} de ${tot} perguntas vistas</small></div><div class="bar"><i class="${cls}" style="width:${p??0}%"></i></div><div class="pct">${p==null?"--":p+"%"}</div></div>`}).join("");
+  $("#warnList").innerHTML=ATENCAO.map(w=>`<div class="warn"><b>${esc(w.titulo)}</b><p>${esc(w.txt)}</p><div class="onde">${esc(w.onde)}</div></div>`).join("")}
+$("#btnErros").onclick=()=>{qMode="erros";$$("#qMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m==="erros"));location.hash="#quiz";setTimeout(()=>{if(pool().length)startQuiz();else toast("Você ainda não errou nenhuma pergunta.")},0)};
+$("#btnReset").onclick=()=>{$("#resetConfirm").hidden=false};
+$("#btnResetNo").onclick=()=>{$("#resetConfirm").hidden=true};
+$("#btnResetYes").onclick=()=>{S={q:{},c:{},b:{},e:{runs:[],min:20}};save();$("#resetConfirm").hidden=true;renderPainel();toast("Progresso apagado.")};
+
+/* QUIZ */
+let qTopics=new Set(Object.keys(TOPICOS)),qMode="mix",qN=10,run=null;
+function topicChips(el,set,onchange,keys){keys=keys||Object.keys(TOPICOS);el.innerHTML=`<button type="button" class="chip" data-k="*" aria-pressed="${keys.every(k=>set.has(k))}">Todos</button>`+Object.entries(TOPICOS).filter(([k])=>keys.includes(k)).map(([k,n])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${set.has(k)}">${esc(n)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;const k=b.dataset.k;const all=keys;
+    if(k==="*"){if(all.every(x=>set.has(x))){set.clear()}else all.forEach(x=>set.add(x))}else{set.has(k)?set.delete(k):set.add(k)}
+    topicChips(el,set,onchange,keys);onchange&&onchange()}}
+function pool(){let p=QUIZ.filter(q=>qTopics.has(q.t));
+  if(qMode==="novas")p=p.filter(q=>!S.q[q.id]);
+  if(qMode==="erros")p=p.filter(q=>{const s=S.q[q.id];return s&&s.last===0});
+  return p}
+function updAvail(){const n=pool().length;$("#qAvail").textContent=n+" perguntas disponíveis";$("#qStart").disabled=!n}
+topicChips($("#qTopics"),qTopics,updAvail);
+$("#qMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;qMode=b.dataset.m;$$("#qMode button").forEach(x=>x.setAttribute("aria-pressed",x===b));updAvail()};
+$("#qCount").onclick=e=>{const b=e.target.closest("button");if(!b)return;qN=+b.dataset.n;$$("#qCount button").forEach(x=>x.setAttribute("aria-pressed",x===b))};
+updAvail();
+function weight(q){const s=S.q[q.id];if(!s)return 2;if(s.last===0)return 3;return 1/(1+(s.r||0))}
+function startQuiz(){let p=pool();if(!p.length){updAvail();return}
+  if(qMode==="mix"){p=p.map(q=>({q,k:Math.random()*weight(q)})).sort((a,b)=>b.k-a.k).map(x=>x.q)}else p=shuffle(p);
+  run={list:p.slice(0,qN),i:0,right:0,missed:[]};$("#quizSetup").hidden=true;$("#quizEnd").hidden=true;$("#quizRun").hidden=false;showQ()}
+$("#qStart").onclick=startQuiz;
+function showQ(){const q=run.list[run.i];const order=shuffle(q.o.map((t,i)=>({t,i})));run.cur={q,order,answered:false};
+  $("#qPos").textContent=`Pergunta ${run.i+1} de ${run.list.length}`;$("#qTopic").textContent=TOPICOS[q.t];
+  $("#qBar").style.width=(100*run.i/run.list.length)+"%";$("#qText").textContent=q.q;$("#qExplain").innerHTML="";$("#qNext").hidden=true;
+  $("#qOpts").innerHTML=order.map((o,j)=>`<button type="button" class="opt" data-j="${j}"><span class="k">${"ABCD"[j]}</span><span>${esc(o.t)}</span><span class="tag"></span></button>`).join("")}
+$("#qOpts").onclick=e=>{const b=e.target.closest(".opt");if(b)answer(+b.dataset.j)};
+function answer(j){const c=run.cur;if(c.answered)return;c.answered=true;const ok=c.order[j].i===c.q.c;
+  $$("#qOpts .opt").forEach((b,k)=>{b.disabled=true;if(c.order[k].i===c.q.c){b.classList.add("right");b.querySelector(".tag").textContent="correta"}else if(k===j){b.classList.add("wrong");b.querySelector(".tag").textContent="sua resposta"}});
+  const s=S.q[c.q.id]||{r:0,w:0};ok?s.r++:s.w++;s.last=ok?1:0;s.at=Date.now();S.q[c.q.id]=s;save();hud();
+  if(ok)run.right++;else run.missed.push(c.q);
+  $("#qExplain").innerHTML=`<div class="explain"><div class="verdict ${ok?"ok":"no"}">${ok?"Isso mesmo.":"Não foi dessa vez."}</div><p>${esc(c.q.e)}</p><div class="ref">Onde está: ${esc(c.q.r)}</div></div>`;
+  $("#qNext").hidden=false;$("#qNext").textContent="";$("#qNext").innerHTML=(run.i+1<run.list.length?"Próxima":"Ver resultado")+" <kbd>Enter</kbd>";$("#qNext").focus()}
+$("#qNext").onclick=()=>{run.i++;if(run.i<run.list.length)showQ();else endQuiz()};
+$("#qQuit").onclick=()=>{if(!run){backSetup();return}if(run.cur.answered)run.i++;if(run.i>0)endQuiz();else backSetup()};
+function backSetup(){$("#quizRun").hidden=true;$("#quizEnd").hidden=true;$("#quizSetup").hidden=false;updAvail()}
+function endQuiz(){const n=Math.min(run.i,run.list.length);$("#quizRun").hidden=true;$("#quizEnd").hidden=false;
+  const p=n?Math.round(100*run.right/n):0;
+  $("#quizEnd").innerHTML=`<div class="eyebrow">Resultado</div><div class="row" style="align-items:flex-end;gap:16px;margin:8px 0 6px"><div class="score">${run.right}/${n}</div><div class="muted">${p}% de acerto</div></div>
+  <p class="muted">${p>=80?"Muito bem. Esses assuntos estão firmes.":p>=60?"Bom caminho. Revise as que errou abaixo.":"Vale reler as explicações abaixo e tentar de novo só com os erros."}</p>
+  <div class="row" style="margin-top:10px"><button class="btn primary" type="button" id="qAgain">Novo quiz</button>${run.missed.length?'<button class="btn" type="button" id="qRetry">Refazer só os erros</button>':""}</div>
+  ${run.missed.length?'<h2 style="font-size:18px;margin-top:24px">Para revisar</h2><div class="missed">'+run.missed.map(q=>`<div><b>${esc(q.q)}</b>Resposta: <span>${esc(q.o[q.c])}</span><p class="muted small" style="margin:6px 0 0">${esc(q.e)}</p><div class="ref">${esc(q.r)}</div></div>`).join("")+"</div>":""}`;
+  $("#qAgain").onclick=backSetup;const rb=$("#qRetry");if(rb)rb.onclick=()=>{const m=run.missed;run={list:shuffle(m),i:0,right:0,missed:[]};$("#quizEnd").hidden=true;$("#quizRun").hidden=false;showQ()}}
+
+/* FLASHCARDS */
+const cKeys=Object.keys(TOPICOS).filter(k=>CARDS.some(c=>c.t===k));let cTopics=new Set(cKeys),curCard=null,lastCard=null;
+topicChips($("#cTopics"),cTopics,()=>renderCard(true),cKeys);
+function pickCard(){const p=CARDS.filter(c=>cTopics.has(c.t));if(!p.length)return null;
+  const sc=c=>{const s=S.c[c.id];const box=s?s.box:-1;return box+Math.random()*1.2+(c===lastCard?5:0)};
+  return p.slice().sort((a,b)=>sc(a)-sc(b))[0]}
+function renderCard(force){if(curCard&&!force&&cTopics.has(curCard.t)){paintBoxes();return}curCard=pickCard();$("#fc").classList.remove("flip");
+  if(!curCard){$("#fcTerm").textContent="Escolha ao menos um tema";$("#fcTopic").textContent="";paintBoxes();return}
+  $("#fcTopic").textContent=$("#fcTopic2").textContent=TOPICOS[curCard.t];$("#fcTerm").textContent=$("#fcTerm2").textContent=curCard.f;
+  $("#fcDef").textContent=curCard.b;$("#fcEx").textContent=curCard.ex;paintBoxes()}
+function paintBoxes(){const p=CARDS.filter(c=>cTopics.has(c.t));const n=[0,0,0,0];p.forEach(c=>{const s=S.c[c.id];n[s?s.box+1:0]++});
+  $("#fcBoxes").innerHTML=`<span>Novos <b>${n[0]}</b></span>·<span>Não sabia <b>${n[1]}</b></span>·<span>Mais ou menos <b>${n[2]}</b></span>·<span>Dominados <b>${n[3]}</b></span>`}
+function flip(){$("#fc").classList.toggle("flip")}
+$("#fc").onclick=flip;
+function rateCard(r){if(!curCard)return;if(!$("#fc").classList.contains("flip")){flip();return}S.c[curCard.id]={box:r,at:Date.now()};save();hud();lastCard=curCard;renderCard(true)}
+$("#fcRate").onclick=e=>{const b=e.target.closest("button");if(b)rateCard(+b.dataset.r)};
+
+/* BANCA */
+let bCur=null,bT0=0,bTimer=null;
+function bPill(b){const s=S.b[b.id];if(!s)return'<span class="pill">não treinada</span>';const p=s.score;const cls=p>=80?"hi":p>=50?"mid":"lo";return`<span class="pill ${cls}">${p}%${s.src==="claude"?" · Claude":""}</span>`}
+function renderBList(){hud();const groups={};BANCA.forEach(b=>(groups[b.t]=groups[b.t]||[]).push(b));
+  $("#bItems").innerHTML=Object.keys(TOPICOS).filter(k=>groups[k]).map(k=>`<div class="eyebrow" style="margin:18px 0 4px">${esc(TOPICOS[k])}</div>`+groups[k].map(b=>`<button type="button" class="bq-item" data-id="${b.id}"><span class="q">${esc(b.q)}<small>${esc(b.r)}</small></span>${bPill(b)}</button>`).join("")).join("")}
+$("#bItems").onclick=e=>{const b=e.target.closest(".bq-item");if(b)openB(BANCA.find(x=>x.id===b.dataset.id))};
+function pickB(){const not=BANCA.filter(b=>!S.b[b.id]&&b!==bCur);const p=not.length?not:BANCA.filter(b=>b!==bCur).sort((a,b)=>(S.b[a.id].score)-(S.b[b.id].score)).slice(0,8);return p[Math.floor(Math.random()*p.length)]}
+$("#bRandom").onclick=()=>openB(pickB());$("#bNext").onclick=()=>openB(pickB());
+$("#bBack").onclick=()=>{stopBTimer();$("#bStage").hidden=true;$("#bList").hidden=false;renderBList()};
+function stopBTimer(){clearInterval(bTimer);bTimer=null}
+function openB(b){bCur=b;$("#bList").hidden=true;$("#bStage").hidden=false;$("#bTopic").textContent=TOPICOS[b.t];$("#bQ").textContent=b.q;
+  $("#bAns").value="";$("#bModel").hidden=true;$("#bAi").innerHTML="";$("#bSaved").textContent="";bT0=Date.now();stopBTimer();
+  $("#bTimer").textContent="0:00";$("#bTimer").style.color="";bTimer=setInterval(()=>{const s=(Date.now()-bT0)/1000;$("#bTimer").textContent=fmt(s);$("#bTimer").style.color=s>90?"var(--warn)":""},500);window.scrollTo(0,0);$("#bAns").focus()}
+function showModel(){stopBTimer();const b=bCur;$("#bModel").hidden=false;$("#bModelTxt").textContent=b.a;$("#bRef").textContent="Onde está: "+b.r;
+  $("#bDica").innerHTML=b.dica?`<div class="dica"><b>Cuidado:</b> ${esc(b.dica)}</div>`:"";
+  $("#bChecks").innerHTML=b.k.map((k,i)=>`<label><input type="checkbox" id="bk${i}"><span>${esc(k)}</span></label>`).join("")}
+$("#bShow").onclick=()=>{showModel();$("#bModel").scrollIntoView({behavior:"smooth",block:"start"})};
+$("#bSave").onclick=()=>{const n=bCur.k.length,m=$$("#bChecks input").filter(x=>x.checked).length;const score=Math.round(100*m/n);
+  S.b[bCur.id]={score,src:"auto",at:Date.now()};save();hud();$("#bSaved").textContent=`Salvo: ${m} de ${n} pontos (${score}%).`};
+let bCtl=null;
+$("#bAsk").onclick=async()=>{const ans=$("#bAns").value.trim();if(ans.length<15){toast("Escreva ou dite sua resposta antes.");return}
+  if(!sample)return;stopBTimer();const b=bCur;const box=$("#bAi");box.innerHTML='<div class="ai"><h3>Avaliando...</h3><p class="muted small">Pode levar alguns segundos.</p></div>';
+  bCtl=new AbortController();$("#bAsk").disabled=true;
+  const prompt=`Você é um professor da banca avaliadora de um TCC de Ciência da Computação (UNIVALI). O TCC é: "Ferramenta educacional para o ensino de gerenciamento de implantação baseado em ITIL e práticas de CI/CD". O aluno sabe pouco de ITIL e CI/CD, então explique em português simples, com exemplo concreto quando corrigir.
+
+Pergunta da banca: ${b.q}
+
+Resposta-modelo baseada no texto do TCC: ${b.a}
+
+Pontos-chave esperados: ${b.k.join("; ")}
+${b.dica?"Observação: "+b.dica:""}
+
+Resposta do aluno (pode ter vindo de ditado, ignore erros de transcrição): ${ans}
+
+Avalie a resposta do aluno comparando com a resposta-modelo. Não invente fatos que não estejam na resposta-modelo. Responda SOMENTE com JSON no formato:
+{"nota": número de 0 a 10, "acertou": ["..."], "faltou": ["pontos-chave que faltaram, curtos"], "corrigir": ["algo dito errado e a forma certa, se houver"], "dica": "uma frase de como melhorar a resposta oral", "replica": "uma pergunta de acompanhamento que o professor faria em seguida"}`;
+  try{const r=await sample.json(prompt,{signal:bCtl.signal});const nota=Math.max(0,Math.min(10,Number(r.nota)||0));
+    const li=a=>Array.isArray(a)&&a.length?"<ul>"+a.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>":'<p class="muted small" style="margin:4px 0 0">Nada.</p>';
+    box.innerHTML=`<div class="ai"><h3><span class="nota">${nota}</span><span>/10 na avaliação do Claude</span></h3>
+    <span class="lbl ok">O que você acertou</span>${li(r.acertou)}<span class="lbl no">O que faltou</span>${li(r.faltou)}
+    ${Array.isArray(r.corrigir)&&r.corrigir.length?'<span class="lbl fix">Corrigir</span>'+li(r.corrigir):""}
+    ${r.dica?'<span class="lbl ok">Para falar melhor</span><p style="margin:4px 0 0">'+esc(r.dica)+"</p>":""}
+    ${r.replica?'<span class="lbl rep">Réplica provável da banca</span><p style="margin:4px 0 0">'+esc(r.replica)+'</p><p class="muted small" style="margin:4px 0 0">Tente responder em voz alta antes de seguir.</p>':""}</div>`;
+    S.b[b.id]={score:nota*10,src:"claude",at:Date.now()};save();hud();showModel()}
+  catch(e){const m=aiErr(e);box.innerHTML=m?`<div class="ai"><p style="margin:0">${esc(m)}</p></div>`:""}
+  finally{$("#bAsk").disabled=false}};
+
+/* ENSAIO */
+const words=s=>s.split(/\s+/).length;
+const totW=SLIDES.reduce((a,s)=>a+words(s.notas),0);
+let eI=0,eMode="ensaio",eTimes=new Array(SLIDES.length).fill(0),eStart=null,ePaused=false,eTick=null,eActive=false;
+$("#eMin").value=S.e.min||20;
+function tgt(i){return (S.e.min||20)*60*words(SLIDES[i].notas)/totW}
+$("#eThumbs").innerHTML=SLIDES.map((s,i)=>`<button type="button" data-i="${i}" title="${esc(s.titulo)}">${i+1}</button>`).join("");
+$("#eThumbs").onclick=e=>{const b=e.target.closest("button");if(b)goSlide(+b.dataset.i)};
+function cur(){return eTimes[eI]+(eStart&&!ePaused?(Date.now()-eStart)/1000:0)}
+function commit(){if(eStart&&!ePaused){eTimes[eI]+=(Date.now()-eStart)/1000}eStart=Date.now()}
+function goSlide(i){if(i<0||i>=SLIDES.length)return;commit();eI=i;paintSlide()}
+function paintSlide(){const s=SLIDES[eI];$("#eImg").src=`slides/s-${String(eI+1).padStart(2,"0")}.jpg`;$("#eImg").alt="Slide "+(eI+1)+": "+s.titulo;
+  $("#eN").textContent=`${String(eI+1).padStart(2,"0")}/${SLIDES.length}`;
+  $("#ePts").innerHTML=(SLIDE_PONTOS[s.n]||[]).map((p,k)=>`<label><input type="checkbox" id="ep${k}"><span>${esc(p)}</span></label>`).join("");
+  const n=$("#eNotes");n.textContent=s.notas;n.classList.toggle("hiddenNotes",eMode==="ensaio");n.title=eMode==="ensaio"?"Clique para mostrar":"";
+  $("#eSaid").value="";$("#eAi").innerHTML="";
+  $$("#eThumbs button").forEach((b,k)=>{b.setAttribute("aria-current",k===eI);b.classList.toggle("done",eTimes[k]>3&&eTimes[k]<=tgt(k)*1.25);b.classList.toggle("over",eTimes[k]>tgt(k)*1.25)});
+  $("#eNext").innerHTML=(eI===SLIDES.length-1?"Terminar ensaio":"Próximo")+" <kbd>→</kbd>";tickE()}
+$("#eNotes").onclick=()=>{if(eMode==="ensaio")$("#eNotes").classList.toggle("hiddenNotes")};
+function tickE(){const c=cur(),t=tgt(eI);$("#eClock").textContent=fmt(c);$("#eClock").classList.toggle("over",c>t*1.25);
+  $("#eTgt").innerHTML=`alvo ~${fmt(t)}<br>${words(SLIDES[eI].notas)} palavras nas notas`;
+  const bar=$("#eTbar");bar.style.width=Math.min(100,100*c/t)+"%";bar.classList.toggle("over",c>t*1.25);
+  const tot=eTimes.reduce((a,b)=>a+b,0)+(eStart&&!ePaused?(Date.now()-eStart)/1000:0);
+  $("#eTotal").textContent="Total: "+fmt(tot);$("#eTotalTgt").textContent="alvo "+(S.e.min||20)+":00"}
+function enterEnsaio(){if(!eActive){eActive=true;eStart=Date.now();ePaused=false;$("#ePause").textContent="Pausar"}paintSlide();clearInterval(eTick);eTick=setInterval(tickE,250)}
+function leaveEnsaio(){if(!eActive)return;commit();ePaused=true;eStart=null;$("#ePause").textContent="Continuar";clearInterval(eTick);eActive=false}
+$("#ePause").onclick=()=>{if(!ePaused){commit();ePaused=true;$("#ePause").textContent="Continuar"}else{ePaused=false;eStart=Date.now();$("#ePause").textContent="Pausar"}};
+$("#ePrev").onclick=()=>goSlide(eI-1);
+$("#eNext").onclick=()=>{if(eI===SLIDES.length-1)finishRun();else goSlide(eI+1)};
+$("#eRestart").onclick=()=>{eTimes.fill(0);eI=0;eStart=Date.now();ePaused=false;$("#ePause").textContent="Pausar";$("#eRecap").innerHTML="";paintSlide();toast("Cronômetro zerado.")};
+$("#eMin").onchange=()=>{const v=Math.max(5,Math.min(60,+$("#eMin").value||20));$("#eMin").value=v;S.e.min=v;save();paintSlide()};
+$("#eMode").onclick=e=>{const b=e.target.closest("button");if(!b)return;eMode=b.dataset.m;$$("#eMode button").forEach(x=>x.setAttribute("aria-pressed",x===b));paintSlide()};
+function finishRun(){commit();ePaused=true;$("#ePause").textContent="Continuar";const total=eTimes.reduce((a,b)=>a+b,0);
+  S.e.runs.push({at:Date.now(),total:Math.round(total),min:S.e.min||20,times:eTimes.map(Math.round)});S.e.runs=S.e.runs.slice(-20);save();hud();
+  const rows=SLIDES.map((s,i)=>{const t=tgt(i),d=eTimes[i];const st=d<2?"pulou":d>t*1.25?"passou do tempo":d<t*.5?"rápido demais":"ok";
+    return`<tr><td>${i+1}</td><td>${esc(s.titulo)}</td><td class="num">${fmt(d)}</td><td class="num">${fmt(t)}</td><td>${st}</td></tr>`}).join("");
+  const alvo=(S.e.min||20)*60,diff=total-alvo;
+  $("#eRecap").innerHTML=`<div class="panel pad"><div class="eyebrow">Ensaio concluído</div><div class="row" style="align-items:flex-end;gap:16px;margin:6px 0 4px"><div class="score">${fmt(total)}</div><div class="muted">${Math.abs(diff)<60?"dentro do tempo":diff>0?fmt(diff)+" acima do alvo":fmt(-diff)+" abaixo do alvo"} de ${S.e.min||20} min</div></div>
+  <p class="muted small">Os alvos por slide são proporcionais ao tamanho das suas notas. Slides marcados como "passou do tempo" são os que mais valem cortar ou ensaiar de novo.</p>
+  <div class="tablewrap"><table><thead><tr><th>#</th><th>Slide</th><th class="num">Seu tempo</th><th class="num">Alvo</th><th>Situação</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  $("#eRecap").scrollIntoView({behavior:"smooth"});paintSlide()}
+let eCtl=null;
+$("#eAsk").onclick=async()=>{const said=$("#eSaid").value.trim();if(said.length<15){toast("Escreva ou dite o que você falou antes.");return}if(!sample)return;
+  const s=SLIDES[eI];const box=$("#eAi");box.innerHTML='<p class="muted small">Comparando...</p>';eCtl=new AbortController();$("#eAsk").disabled=true;
+  const prompt=`Você ajuda um estudante a ensaiar a apresentação do TCC dele para a banca. Compare o que ele falou no slide ${eI+1} ("${s.titulo}") com as notas que ele mesmo preparou e com os pontos-chave. Seja breve, gentil e direto, em português simples.
+
+Notas do apresentador: ${s.notas}
+
+Pontos-chave: ${(SLIDE_PONTOS[s.n]||[]).join("; ")}
+
+O que ele falou (pode ter vindo de ditado; ignore erros de transcrição): ${said}
+
+Responda SOMENTE com JSON: {"cobriu": ["pontos-chave que ele cobriu"], "faltou": ["pontos-chave que faltaram"], "errado": ["algo dito de forma incorreta, se houver"], "frase": "uma frase curta e natural que ele poderia usar para abrir este slide"}`;
+  try{const r=await sample.json(prompt,{signal:eCtl.signal});const li=a=>Array.isArray(a)&&a.length?"<ul>"+a.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>":'<p class="muted small" style="margin:4px 0 0">Nada.</p>';
+    box.innerHTML=`<div class="ai" style="margin-top:0"><span class="lbl ok" style="margin-top:0">Você cobriu</span>${li(r.cobriu)}<span class="lbl no">Faltou</span>${li(r.faltou)}${Array.isArray(r.errado)&&r.errado.length?'<span class="lbl fix">Cuidado</span>'+li(r.errado):""}${r.frase?'<span class="lbl rep">Sugestão de abertura</span><p style="margin:4px 0 0">'+esc(r.frase)+"</p>":""}</div>`}
+  catch(e){const m=aiErr(e);box.innerHTML=m?`<p class="small">${esc(m)}</p>`:""}finally{$("#eAsk").disabled=false}};
+
+/* teclado */
+document.addEventListener("keydown",e=>{const tag=(e.target.tagName||"").toLowerCase();if(tag==="textarea"||tag==="input")return;const v=(location.hash||"#painel").slice(1);
+  if(v==="quiz"&&!$("#quizRun").hidden){if(run&&!run.cur.answered&&/^[1-4a-dA-D]$/.test(e.key)){const j=/[1-4]/.test(e.key)?+e.key-1:"abcd".indexOf(e.key.toLowerCase());answer(j);e.preventDefault()}else if(e.key==="Enter"&&run.cur.answered){$("#qNext").click();e.preventDefault()}}
+  if(v==="cards"){if(e.key===" "||e.key==="Enter"){flip();e.preventDefault()}else if(/^[123]$/.test(e.key))rateCard(+e.key-1)}
+  if(v==="ensaio"){if(e.key==="ArrowRight"||e.key==="PageDown"){$("#eNext").click();e.preventDefault()}else if(e.key==="ArrowLeft"||e.key==="PageUp"){goSlide(eI-1);e.preventDefault()}}});
+
+route();hud();
+})();
+</script>
+
+</body>
+</html>
